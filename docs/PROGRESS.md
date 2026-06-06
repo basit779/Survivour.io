@@ -17,6 +17,11 @@ _Last updated: 2026-06-06 (end of session 1)_
 - **Design research:** full `docs/MASTER_PLAN.md` (85-file manifest, 11-step build order, reconciled tuning tables) + 6 detailed specs in `docs/specs/`.
 - **Git:** connected to `https://github.com/basit779/Survivour.io`, checkpoints pushed to `main`.
 
+### 🎯 Agreed plan for next session
+**Go all-in:** build playable core first (~30–40 min), then continue milestone-by-milestone
+(enemies/waves → weapons/evolutions → level-up loop → meta → juice/audio), committing + pushing
+at each milestone. Full vertical slice est. ~4–5 hrs of work, spread across sessions as needed.
+
 ### 🔜 Next (resume here)
 
 Follow the **Implementation Order** in [MASTER_PLAN.md](MASTER_PLAN.md). The foundation covers steps' prerequisites; begin building runtime:
