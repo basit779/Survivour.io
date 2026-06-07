@@ -1,10 +1,49 @@
 # Progress & Resume Guide
 
-_Last updated: 2026-06-06 (end of session 1)_
+_Last updated: 2026-06-07 (session 2 — PLAYABLE)_
 
 ## Where we are
 
-**Foundation complete. Gameplay implementation is next.**
+**🎮 The game is PLAYABLE.** Drive a glowing player around a neon arena (touch
+joystick / WASD), an auto-targeting weapon fires at the nearest enemy, enemies
+swarm with seek+separation flocking, die into XP gems that vacuum to you, you
+level up (auto power bumps for now), take contact damage, and can die / win.
+
+**How to run & play:**
+```bash
+npm run dev      # http://localhost:5173  (or the Network URL on your phone, same WiFi)
+npm run smoke    # headless sim + render verification (both PASS)
+```
+Controls: drag anywhere = move (mobile), WASD/arrows = move, P/Esc = pause,
+tap / R / Enter = retry on death.
+
+**Verified this session:** `tsc` clean · `vite build` OK (≈29 KB JS) · 60 s
+headless sim PASS (kills, leveling, no NaN) · render smoke PASS (all overlay
+states).
+
+### Built in session 2 (the playable core)
+- Engine: `Engine` (fixed-timestep + accumulator + timeScale), `Time`, `Scene`/
+  `SceneManager`, `Renderer` (DPR-cap, portrait fit-by-width), `Camera` (follow +
+  trauma shake).
+- Input: `VirtualJoystick` (floating), `Keyboard`, `InputManager`.
+- World + entities + object pools + spawn factories.
+- Systems: player control, enemy AI (seek+separation) + spawn director, weapons
+  (nearest-target projectile), movement, projectiles, collisions, damage, deaths
+  + drops, pickups + leveling, camera, particles, damage numbers, render (world +
+  HUD + overlays).
+- Data: starter weapon (`shard`), 3 enemies (swarmer/runner/brute), XP curve.
+
+### 🔜 Next (resume here) — continue the milestone ladder
+1. **Enemies + waves + bosses** (step 5): full 13-kind roster, per-kind behaviors
+   (ranged/suicide/split), elites, the 5/10/15-min boss cadence, richer spawn
+   director + difficulty scaling, status effects.
+2. **Full weapons + evolutions** (step 6): all 10 weapons (aura/orbit/beam/
+   boomerang/area), 12 passives, evolution recipes.
+3. **Level-up card screen** (step 7): replace auto-leveling with the 3-card
+   choose-an-upgrade overlay (reroll/banish), proper win/lose summary.
+4. Then meta/persistence → juice → audio → ship hardening (steps 8–11).
+
+**Original foundation (session 1) below.**
 
 ### ✅ Done
 - **Decisions locked:** mobile (iOS/Android), programmatic neon art, full vertical slice scope.
