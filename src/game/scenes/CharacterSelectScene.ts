@@ -26,13 +26,13 @@ export class CharacterSelectScene implements Scene {
 
   private layout(r: Renderer): void {
     const W = r.viewW
-    const top = 96
+    const top = 100
     const rowH = 66
     const gap = 10
     const w = Math.min(W * 0.9, 460)
     const x = (W - w) / 2
     this.rows = OPERATOR_IDS.map((_, i) => ({ x, y: top + i * (rowH + gap), w, h: rowH }))
-    this.back = { x: W / 2 - 70, y: top + OPERATOR_IDS.length * (rowH + gap) + 12, w: 140, h: 46 }
+    this.back = { x: 12, y: 12, w: 96, h: 42 }
   }
 
   private handleInput(): void {
@@ -83,8 +83,9 @@ export class CharacterSelectScene implements Scene {
     r.clear(PAL.bg)
     r.beginScreen()
 
-    text(g, 'HEROES', W / 2, 44, 28, PAL.uiAccent, 800, 'center')
-    text(g, `◆ ${save.totalGold}`, W / 2, 72, 16, PAL.gold, 700, 'center')
+    button(g, this.back, '‹ BACK', PAL.uiAccent)
+    text(g, 'HEROES', W / 2, 32, 26, PAL.uiAccent, 800, 'center', true)
+    text(g, `◆ ${save.totalGold}`, W / 2, 70, 16, PAL.gold, 700, 'center', true)
 
     for (let i = 0; i < OPERATOR_IDS.length; i++) {
       const id = OPERATOR_IDS[i]
@@ -100,7 +101,5 @@ export class CharacterSelectScene implements Scene {
       const tag = selected ? 'SELECTED' : unlocked ? 'SELECT' : `◆ ${op.unlockCost}`
       text(g, tag, rc.x + rc.w - 16, rc.y + rc.h / 2, 14, selected ? PAL.bg : unlocked ? PAL.uiAccent : PAL.gold, 700, 'right')
     }
-
-    button(g, this.back, 'BACK', PAL.uiAccent)
   }
 }

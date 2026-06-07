@@ -26,13 +26,13 @@ export class MetaShopScene implements Scene {
 
   private layout(r: Renderer): void {
     const W = r.viewW
-    const top = 96
+    const top = 100
     const rowH = 60
     const gap = 10
     const w = Math.min(W * 0.9, 460)
     const x = (W - w) / 2
     this.rows = META_UPGRADES.map((_, i) => ({ x, y: top + i * (rowH + gap), w, h: rowH }))
-    this.back = { x: W / 2 - 70, y: top + META_UPGRADES.length * (rowH + gap) + 12, w: 140, h: 46 }
+    this.back = { x: 12, y: 12, w: 96, h: 42 }
   }
 
   private handleInput(): void {
@@ -76,8 +76,9 @@ export class MetaShopScene implements Scene {
     r.clear(PAL.bg)
     r.beginScreen()
 
-    text(g, 'UPGRADES', W / 2, 44, 28, PAL.uiAccent, 800, 'center')
-    text(g, `◆ ${this.ctx.save.data.totalGold}`, W / 2, 72, 16, PAL.gold, 700, 'center')
+    button(g, this.back, '‹ BACK', PAL.uiAccent)
+    text(g, 'UPGRADES', W / 2, 32, 26, PAL.uiAccent, 800, 'center', true)
+    text(g, `◆ ${this.ctx.save.data.totalGold}`, W / 2, 70, 16, PAL.gold, 700, 'center', true)
 
     for (let i = 0; i < META_UPGRADES.length; i++) {
       const def = META_UPGRADES[i]
@@ -93,7 +94,5 @@ export class MetaShopScene implements Scene {
       text(g, `${rank}/${def.maxRank}`, rc.x + rc.w - 70, rc.y + 20, 14, PAL.uiText, 700, 'right')
       text(g, maxed ? 'MAX' : `◆ ${cost}`, rc.x + rc.w - 16, rc.y + 42, 14, maxed ? PAL.uiDim : afford ? PAL.gold : PAL.uiWarn, 700, 'right')
     }
-
-    button(g, this.back, 'BACK', PAL.uiAccent)
   }
 }
