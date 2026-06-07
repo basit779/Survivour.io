@@ -6,6 +6,8 @@ import { C } from '../../data/balance'
 import { PAL } from '../../data/palette'
 import { Time } from '../../engine/Time'
 import { sprites } from '../../engine/SpriteCache'
+import { WEAPONS } from '../../data/weapons'
+import { PASSIVES } from '../../data/passives'
 import type { Renderer } from '../../engine/Renderer'
 import type { World } from '../World'
 import type { Enemy, Gem, Particle } from '../entities'
@@ -57,7 +59,7 @@ export function renderWorld(world: World, r: Renderer, alpha: number): void {
   for (let i = 0; i < pr.count; i++) {
     const q = pr.items[i]
     if (q.hostile) continue // hostile shots drawn solid below
-    drawBullet(g, lerp(q.prevX, q.x, alpha), lerp(q.prevY, q.y, alpha), q.radius, q.color)
+    drawBullet(g, lerp(q.prevX, q.x, alpha), lerp(q.prevY, q.y, alpha), q.radius, q.color, q.vx, q.vy)
   }
   const ps = world.particles
   for (let i = 0; i < ps.count; i++) drawParticle(g, ps.items[i])
@@ -184,7 +186,21 @@ function drawPlayer(g: CanvasRenderingContext2D, x: number, y: number, radius: n
   g.beginPath(); g.arc(x, y, radius, 0, TAU); g.fill()
 }
 
-function drawBullet(g: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string): void {
+function drawBullet(g: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string, vx = 0, vy = 0): void {
+  // motion trail (additive, so it streaks)
+  const sp = Math.hypot(vx, vy)
+  if (sp > 1) {
+    const tl = Math.min(radius * 4, sp * 0.022)
+    g.strokeStyle = color
+    g.globalAlpha = 0.4
+    g.lineWidth = radius * 1.3
+    g.lineCap = 'round'
+    g.beginPath()
+    g.moveTo(x, y)
+    g.lineTo(x - (vx / sp) * tl, y - (vy / sp) * tl)
+    g.stroke()
+    g.globalAlpha = 1
+  }
   // soft glow + bright core
   g.fillStyle = color
   g.globalAlpha = 0.5
@@ -346,13 +362,16 @@ export function renderHud(world: World, r: Renderer, input: InputManager, paused
   boldText(g, `☠ ${run.kills}`, W - 12, rowY - 6, 14, '#ffffff', 700, 'right')
   boldText(g, `◆ ${run.gold}`, W - 12, rowY + 12, 14, PAL.gold, 700, 'right')
 
-  // boss HP bar (top center, when a boss is alive)
+  // live loadout bar — weapons + passives, updates as you pick them up
+  drawLoadout(g, world, W, rowY + 24)
+
+  // boss HP bar (top center, when a boss is alive — sits below the loadout bar)
   if (world.boss && world.boss.alive) {
     const b = world.boss
     const bw = W * 0.74
     const bh = 13
     const bx = (W - bw) / 2
-    const by = rowY + 22
+    const by = rowY + 58
     g.fillStyle = 'rgba(0,0,0,0.55)'
     roundRect(g, bx - 3, by - 3, bw + 6, bh + 6, 7); g.fill()
     g.fillStyle = 'rgba(255,255,255,0.12)'
@@ -399,14 +418,63 @@ export function renderHud(world: World, r: Renderer, input: InputManager, paused
   // joystick visual
   if (input.joystick.active) drawJoystick(g, input)
 
-  // debug fps
+  // debug fps (bottom-left, out of the way)
   g.textAlign = 'left'
-  g.textBaseline = 'top'
+  g.textBaseline = 'bottom'
   g.font = '600 10px monospace'
   g.fillStyle = PAL.uiDim
-  g.fillText(`${Time.fps} fps · ${world.enemies.count}e`, 12, rowY + 16)
+  g.fillText(`${Time.fps} fps · ${world.enemies.count}e`, 10, H - 8)
 
   if (paused && run.state === 'playing') centerOverlay(g, W, H, 'PAUSED', 'Tap or press P / Esc to resume')
+}
+
+// Live loadout: a centered row of weapon + passive icons that fills in / levels
+// up as you pick skills — the Survivor.io top skill strip.
+function drawLoadout(g: CanvasRenderingContext2D, world: World, W: number, y: number): void {
+  const p = world.player
+  const items: { letter: string; color: string; level: number; evolved: boolean }[] = []
+  for (const w of p.weapons) {
+    const def = WEAPONS[w.defId]
+    if (def) items.push({ letter: def.name[0], color: def.color, level: w.level, evolved: w.evolved })
+  }
+  for (const pi of p.passives) {
+    const def = PASSIVES[pi.defId]
+    if (def) items.push({ letter: def.name[0], color: PAL.uiPanelLight, level: pi.level, evolved: false })
+  }
+  if (items.length === 0) return
+  const s = 24
+  const gap = 4
+  const total = items.length * s + (items.length - 1) * gap
+  let x = Math.max(8, (W - total) / 2)
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i]
+    // tile
+    g.fillStyle = 'rgba(0,0,0,0.5)'
+    roundRect(g, x - 1, y - 1, s + 2, s + 2, 7); g.fill()
+    g.fillStyle = it.color
+    roundRect(g, x, y, s, s, 6); g.fill()
+    g.fillStyle = 'rgba(255,255,255,0.18)'
+    roundRect(g, x + 2, y + 2, s - 4, (s - 4) * 0.42, 4); g.fill()
+    g.lineWidth = 2
+    g.strokeStyle = it.evolved ? PAL.uiGold : PAL.outline
+    roundRect(g, x, y, s, s, 6); g.stroke()
+    // letter
+    g.textAlign = 'center'
+    g.textBaseline = 'middle'
+    g.font = '800 13px system-ui, sans-serif'
+    g.lineJoin = 'round'; g.lineWidth = 3; g.strokeStyle = PAL.outline
+    g.strokeText(it.letter.toUpperCase(), x + s / 2, y + s / 2)
+    g.fillStyle = '#ffffff'
+    g.fillText(it.letter.toUpperCase(), x + s / 2, y + s / 2)
+    // level pip (bottom-right)
+    g.fillStyle = PAL.uiGold
+    g.beginPath(); g.arc(x + s - 4, y + s - 4, 6.5, 0, TAU); g.fill()
+    g.lineWidth = 1.5; g.strokeStyle = PAL.outline; g.stroke()
+    g.fillStyle = PAL.outline
+    g.font = '800 9px system-ui, sans-serif'
+    g.fillText(`${it.level}`, x + s - 4, y + s - 3)
+    x += s + gap
+  }
 }
 
 function drawJoystick(g: CanvasRenderingContext2D, input: InputManager): void {

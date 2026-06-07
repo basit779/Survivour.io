@@ -154,8 +154,8 @@ export function updateSpawnDirector(world: World, dt: number): void {
   const target = Math.min(targetEnemyCount(minutes), C.MAX_ENEMIES)
   world.spawnTimer -= dt
   if (world.spawnTimer <= 0 && world.enemies.count < target) {
-    world.spawnTimer = 0.14
-    const batch = Math.min(22, target - world.enemies.count)
+    world.spawnTimer = 0.12
+    const batch = Math.min(30, target - world.enemies.count)
     for (let i = 0; i < batch; i++) spawnAt(world, pickEnemy(world, minutes), minutes, world.rng.range(C.SPAWN_RING_MIN, C.SPAWN_RING_MAX))
   }
 }

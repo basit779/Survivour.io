@@ -70,7 +70,7 @@ export function speedScale(minutes: number): number {
 }
 
 // On-screen soft target enemy count. A real Survivor.io-style horde is a dense
-// slow wall you weave through — hundreds on screen, not dozens.
+// slow wall you weave through — a big crowd from the very start, scaling up hard.
 export function targetEnemyCount(minutes: number): number {
-  return Math.min(450, Math.round(60 + minutes * 60))
+  return Math.min(520, Math.round(110 + minutes * 80))
 }
