@@ -138,6 +138,11 @@ export class Particle {
   size = 2
   color = '#fff'
   drag = 3
+  // Expanding AOE shockwave (big punchy explosion/aura visual). When true the
+  // renderer draws a filled+stroked additive ring growing r0 -> r1 over life.
+  ring = false
+  r0 = 0
+  r1 = 0
 }
 
 export class DamageNumber {

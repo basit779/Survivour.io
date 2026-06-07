@@ -1,61 +1,87 @@
-// Neon/arcade art direction. Single source of color truth, consumed by the
-// renderer and (later) the SpriteCache. All art is drawn programmatically.
+// Survivor.io-style art direction: bright chunky cartoon on a desaturated grey
+// urban ground, thick near-black outlines + white rims, big punchy AOE VFX, bold
+// gold/slate UI. Grounded in the real game's screenshots (see docs/ART_BIBLE.md).
+// Single source of color truth, consumed by the renderer + SpriteCache.
 
 export const PAL = {
-  // Background
-  bg: '#05060a',
-  bgGrid: '#101a33',
-  bgGridGlow: '#1b2b52',
-  vignette: 'rgba(0,0,0,0.55)',
+  // Background / ground (muted grey urban so sprites + VFX pop)
+  bg: '#23262c', // outside the arena / letterbox
+  groundBase: '#5b6068',
+  groundLight: '#6b7079',
+  groundDark: '#474c54',
+  roadPaint: 'rgba(232,234,240,0.42)',
+  bgGrid: '#4a4f57',
+  bgGridGlow: '#3a3f47',
+  vignette: 'rgba(0,0,0,0.45)',
 
-  // Player
-  player: '#3fe0ff',
-  playerCore: '#eafcff',
-  playerGlow: '#12a9ff',
+  // Shared art tokens
+  outline: '#15171c', // thick near-black outline on every sprite
+  rim: '#ffffff', // white halo separating sprites from ground
 
-  // Enemies (by archetype)
-  enemySwarmer: '#ff476f',
-  enemyRunner: '#ff9f1c',
-  enemyBrute: '#b14bff',
-  enemyRanged: '#4be0a4',
-  enemySuicide: '#ffd23f',
-  enemyBoss: '#ff3860',
-  enemyGlow: '#ff2e63',
+  // Player (chunky survivor: blue cap, navy jacket, skin, dark gun)
+  player: '#3d8de0',
+  playerCore: '#eaf4ff',
+  playerGlow: '#2b3a5e',
+  heroCap: '#3d8de0',
+  heroJacket: '#2b3a5e',
+  heroSkin: '#f1c79b',
+  heroGun: '#3a3f47',
+  heroGunAccent: '#e0503a',
+
+  // Enemies (bright, saturated, color-coded cartoon zombies)
+  enemySwarmer: '#8bc34a',
+  enemyRunner: '#b89b72',
+  enemyBrute: '#6aa84f',
+  enemyRanged: '#9c4dcc',
+  enemySuicide: '#ff7043',
+  enemyBoss: '#5e9c3f',
+  enemyGlow: '#ffe066',
 
   // Projectiles / weapons
-  projectile: '#ffe66d',
+  projectile: '#ffe066',
   projectileGlow: '#ffb703',
-  beam: '#7afcff',
-  aura: 'rgba(63,224,255,0.18)',
+  beam: '#9fd0ff',
+  aura: 'rgba(255,140,40,0.20)',
+
+  // VFX (big additive AOE fire)
+  aoeFire: '#ff7a18',
+  aoeRim: '#ffd24a',
+  zap: '#9fd0ff',
 
   // Pickups
-  xpGem: '#7CFFB2',
+  xpGem: '#7ee37a',
   xpGemGlow: '#27e08a',
-  xpGemBig: '#7ad0ff',
-  gold: '#ffd75e',
+  xpGemBig: '#56b8ff',
+  gold: '#ffcb3d',
   health: '#ff5d73',
 
   // Damage numbers
   dmg: '#ffffff',
   dmgCrit: '#ffd23f',
-  heal: '#7CFFB2',
+  heal: '#7ee37a',
 
-  // UI accents
-  uiAccent: '#3fe0ff',
-  uiWarn: '#ff476f',
-  uiText: '#dfe9ff',
-  uiDim: '#7f8db0',
+  // UI
+  uiPanel: '#2b2f3a',
+  uiPanelLight: '#3a3f4d',
+  uiPanelBorder: '#15171c',
+  uiAccent: '#3d9bf0',
+  uiGood: '#7cc242',
+  uiGold: '#ffc02e',
+  uiGoldDark: '#d68f1e',
+  uiWarn: '#ff5470',
+  uiText: '#ffffff',
+  uiDim: '#b8c0d0',
 } as const
 
-// Rarity colors for level-up cards (7-tier, used later by the upgrade UI).
+// Rarity colors for level-up cards (7-tier).
 export const RARITY = {
-  common: '#9fb0d0',
-  uncommon: '#5ee08a',
-  rare: '#3fa9ff',
-  epic: '#b14bff',
-  legendary: '#ffb703',
-  mythic: '#ff476f',
-  evolved: '#7afcff',
+  common: '#b6bcc8',
+  uncommon: '#7cc242',
+  rare: '#3d9bf0',
+  epic: '#b15be0',
+  legendary: '#ffb02e',
+  mythic: '#ff5470',
+  evolved: '#34e0e0',
 } as const
 
 export type RarityKey = keyof typeof RARITY

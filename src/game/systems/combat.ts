@@ -182,6 +182,7 @@ export function updateDeaths(world: World): void {
       if (dx * dx + dy * dy <= rr * rr) damagePlayer(world, e.explodeDamage)
       world.camera.addTrauma(0.18)
       sfx.explode()
+      world.spawnRing(e.x, e.y, e.explodeRadius, PAL.aoeFire, 0.42)
       for (let k = 0; k < 18; k++) {
         const a = world.rng.range(0, Math.PI * 2)
         const sp = world.rng.range(90, 240)
@@ -205,6 +206,8 @@ export function updateDeaths(world: World): void {
       }
       world.spawnGem(e.x, e.y, Math.round(p.maxHp * 0.3), 'health')
       world.camera.addTrauma(0.6)
+      world.spawnRing(e.x, e.y, e.radius * 4.5, PAL.aoeFire, 0.7)
+      world.spawnRing(e.x, e.y, e.radius * 3, PAL.aoeRim, 0.5)
       world.boss = null
       sfx.bossDie()
     } else {
@@ -219,7 +222,10 @@ export function updateDeaths(world: World): void {
       const sp = world.rng.range(50, 160)
       world.spawnParticle(e.x, e.y, Math.cos(a) * sp, Math.sin(a) * sp, world.rng.range(0.22, 0.5), world.rng.range(2, 4), e.glow)
     }
-    if (e.radius > 16) world.camera.addTrauma(0.12)
+    if (e.radius > 16 && !e.isBoss) {
+      world.camera.addTrauma(0.12)
+      world.spawnRing(e.x, e.y, e.radius * 2.2, e.glow, 0.34)
+    }
     e.alive = false
   }
   en.sweep()

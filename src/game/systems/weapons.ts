@@ -4,6 +4,7 @@
 // instantly via damageEnemy.
 import { C } from '../../data/balance'
 import { TAU } from '../../engine/math'
+import { PAL } from '../../data/palette'
 import { WEAPONS, weaponLevel } from '../../data/weapons'
 import { damageEnemy } from './combat'
 import { findNearest, findNearestN } from './target'
@@ -96,12 +97,8 @@ function fireAura(world: World, lv: WeaponLevel, p: Player): void {
       damageEnemy(world, e, dmg, crit, dx, dy, lv.knockback)
     }
   })
-  // pulse ring particles
-  const n = 16
-  for (let i = 0; i < n; i++) {
-    const a = (i / n) * TAU
-    world.spawnParticle(p.x + Math.cos(a) * radius, p.y + Math.sin(a) * radius, Math.cos(a) * 40, Math.sin(a) * 40, 0.25, 2.5, '#3fe0ff')
-  }
+  // big additive AOE pulse
+  world.spawnRing(p.x, p.y, radius, PAL.aoeFire, 0.3)
 }
 
 function fireOrbit(world: World, def: WeaponDef, lv: WeaponLevel, p: Player): void {
@@ -126,11 +123,12 @@ function fireStrike(world: World, lv: WeaponLevel, p: Player): void {
     const e = strikeTargets[i]
     const { dmg, crit } = rollDamage(world, lv.damage, p)
     damageEnemy(world, e, dmg, crit, e.x - p.x, e.y - p.y, lv.knockback)
-    // zap visual: particles along the bolt
-    const steps = 6
+    // zap visual: bolt particles + impact ring
+    const steps = 7
     for (let s = 0; s <= steps; s++) {
       const t = s / steps
-      world.spawnParticle(p.x + (e.x - p.x) * t, p.y + (e.y - p.y) * t, 0, 0, 0.12, 2.5, '#bdb2ff')
+      world.spawnParticle(p.x + (e.x - p.x) * t, p.y + (e.y - p.y) * t, 0, 0, 0.12, 3, PAL.zap)
     }
+    world.spawnRing(e.x, e.y, e.radius * 2.2, PAL.zap, 0.22)
   }
 }

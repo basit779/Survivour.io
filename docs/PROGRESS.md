@@ -1,13 +1,46 @@
 # Progress & Resume Guide
 
-_Last updated: 2026-06-07 (session 2 — PLAYABLE)_
+_Last updated: 2026-06-07 (session 3 — VISUAL OVERHAUL, grounded in real Survivor.io)_
+
+## Session 3 — research-grounded visual overhaul (the "make it actually look like Survivor.io" pass)
+
+User feedback was blunt: the neon-blob art looked like "sloppy trash" and I was
+building the look from memory. So this session: **researched first, then rebuilt.**
+
+- **Deep research** (104-agent workflow) on Survivor.io systems/economy + **viewed
+  the real App Store screenshots directly** (`tools/ref/`, gitignored — copyrighted)
+  to ground the art. Findings → `docs/ART_BIBLE.md`.
+- **Art direction flipped** from dark neon-arcade → **bright chunky cartoon** (the
+  real game's look): thick near-black outlines + **white rim halo** on every sprite,
+  big rounded heads, bold saturated colors on a **desaturated grey urban ground**.
+- **New palette** (`data/palette.ts`) — grey asphalt, hero navy/blue/skin, color-coded
+  zombies, gold/slate UI. Same keys retained so nothing downstream broke.
+- **SpriteCache rewrite**: `withRim()` dilation halo; a **hero** (big head, bright blue
+  cap, navy jacket, gun); distinct cartoon **zombies** — green humanoid, tan runner,
+  green **ogre** brute/boss (toothy), **purple cyclops** spitter, orange **bomb**,
+  teal **slime** splitter — each thick-outlined + rimmed, plus white hit-flash bake.
+- **Ground**: grey asphalt tile (seams/speckle/oil) + world-space white dashed road
+  lines → urban-street read; dark curb arena border.
+- **VFX/juice**: `spawnRing()` big additive **AOE shockwaves** (bomber blast, boss
+  death, aura pulse, strike impact); bold **outlined damage numbers** (crit pops gold).
+- **UI**: chunky filled buttons (3D lip + gloss + outlined labels), slate panels, gold
+  **ribbon banners**; level-up cards with **rarity header bands** + icon tiles + NEW!/Lv
+  tags + numbered chips; main menu with gold logo + hero mascot; bold outlined HUD.
+- **Verified**: `tsc` clean · `npm run smoke` PASS (sim + render) · Playwright shots
+  (`tools/shot.mjs`) compared against the real reference — menu, gameplay (kited horde),
+  level-up, game-over all read as Survivor.io. Screenshots in `tools/shots/` (gitignored).
+
+**Known next (feel/content, deferred):** richer late-game horde density tuning; weapon
+projectile VFX could be punchier; evolution golden-chest moment; biome variety.
 
 ## Where we are
 
-**🎮 The game is PLAYABLE.** Drive a glowing player around a neon arena (touch
-joystick / WASD), an auto-targeting weapon fires at the nearest enemy, enemies
-swarm with seek+separation flocking, die into XP gems that vacuum to you, you
-level up (auto power bumps for now), take contact damage, and can die / win.
+**🎮 The game is PLAYABLE and now LOOKS like Survivor.io.** Drive a chunky cartoon
+survivor (blue cap + gun) around a grey urban arena (touch joystick / WASD), an
+auto-targeting weapon fires at the nearest enemy, color-coded cartoon zombies swarm
+with seek+separation flocking, die into XP gems that vacuum to you, you pick from 3
+rarity-banded level-up cards, take contact damage, and can die / win. See the art
+direction in `docs/ART_BIBLE.md`.
 
 **How to run & play:**
 ```bash

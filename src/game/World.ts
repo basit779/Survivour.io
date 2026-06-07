@@ -208,8 +208,8 @@ export class World {
     g.value = value
     g.kind = kind
     g.magnetized = false
-    g.color = kind === 'xp' ? PAL.xpGem : kind === 'gold' ? PAL.gold : PAL.health
-    g.radius = kind === 'xp' ? 5 : 6
+    g.color = kind === 'xp' ? (value >= 10 ? PAL.xpGemBig : PAL.xpGem) : kind === 'gold' ? PAL.gold : PAL.health
+    g.radius = kind === 'xp' ? (value >= 10 ? 6.5 : 5) : 6.5
   }
 
   spawnParticle(x: number, y: number, vx: number, vy: number, life: number, size: number, color: string): void {
@@ -224,6 +224,25 @@ export class World {
     pt.size = size
     pt.color = color
     pt.drag = 3
+    pt.ring = false
+  }
+
+  /** Big expanding AOE shockwave (explosions, aura pulses, boss death). */
+  spawnRing(x: number, y: number, r1: number, color: string, life = 0.4, r0 = r1 * 0.25): void {
+    if (this.particles.count >= C.MAX_PARTICLES) return
+    const pt = this.particles.spawn()
+    pt.x = x
+    pt.y = y
+    pt.vx = 0
+    pt.vy = 0
+    pt.life = life
+    pt.maxLife = life
+    pt.size = 0
+    pt.color = color
+    pt.drag = 0
+    pt.ring = true
+    pt.r0 = r0
+    pt.r1 = r1
   }
 
   spawnDamageNumber(x: number, y: number, text: string, color: string, crit: boolean): void {

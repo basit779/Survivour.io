@@ -7,6 +7,10 @@ dist/
 
 # QA screenshots
 tools/shots/
+# reference images (copyrighted Habby App Store screenshots — research only, do NOT commit)
+tools/ref/
+# dev server log
+tools/dev.log
 
 # capacitor native projects (generated)
 /android

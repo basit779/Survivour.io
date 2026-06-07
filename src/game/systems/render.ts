@@ -1,5 +1,6 @@
-// All drawing. World pass (neon grid + entities + additive glow/particles) then
-// the screen-space HUD/overlays. Programmatic art only.
+// All drawing. World pass (urban ground + entities + additive VFX) then the
+// screen-space HUD/overlays. Art = bright chunky cartoon (thick outline + white
+// rim, baked into sprites) on desaturated grey ground; big additive AOE rings.
 import { lerp, TAU } from '../../engine/math'
 import { C } from '../../data/balance'
 import { PAL } from '../../data/palette'
@@ -30,14 +31,12 @@ export function renderWorld(world: World, r: Renderer, alpha: number): void {
 
   drawGround(g, r, left, right, top, bottom)
 
-  // gems
+  // gems (crisp, source-over so they read as solid pickups)
   const gm = world.gems
-  g.globalCompositeOperation = 'lighter'
   for (let i = 0; i < gm.count; i++) {
     const e = gm.items[i]
     drawGem(g, lerp(e.prevX, e.x, alpha), lerp(e.prevY, e.y, alpha), e)
   }
-  g.globalCompositeOperation = 'source-over'
 
   // enemies
   const en = world.enemies
@@ -52,29 +51,46 @@ export function renderWorld(world: World, r: Renderer, alpha: number): void {
   // player
   drawPlayer(g, lerp(world.player.prevX, world.player.x, alpha), lerp(world.player.prevY, world.player.y, alpha), world.player.radius, world.player.hurtFlash)
 
-  // projectiles + particles (additive glow)
+  // projectiles + particles + AOE rings (additive glow)
   g.globalCompositeOperation = 'lighter'
   const pr = world.projectiles
   for (let i = 0; i < pr.count; i++) {
     const q = pr.items[i]
-    const x = lerp(q.prevX, q.x, alpha)
-    const y = lerp(q.prevY, q.y, alpha)
-    drawGlowDot(g, x, y, q.radius, q.color)
+    if (q.hostile) continue // hostile shots drawn solid below
+    drawBullet(g, lerp(q.prevX, q.x, alpha), lerp(q.prevY, q.y, alpha), q.radius, q.color)
   }
   const ps = world.particles
   for (let i = 0; i < ps.count; i++) drawParticle(g, ps.items[i])
   g.globalCompositeOperation = 'source-over'
 
-  // damage numbers (world space)
+  // hostile enemy shots (solid, menacing)
+  for (let i = 0; i < pr.count; i++) {
+    const q = pr.items[i]
+    if (!q.hostile) continue
+    const x = lerp(q.prevX, q.x, alpha)
+    const y = lerp(q.prevY, q.y, alpha)
+    g.fillStyle = PAL.enemyRanged
+    g.beginPath(); g.arc(x, y, q.radius + 1.5, 0, TAU); g.fill()
+    g.lineWidth = 2; g.strokeStyle = PAL.outline; g.stroke()
+  }
+
+  // damage numbers (world space, bold + outlined)
   const dn = world.damageNumbers
   g.textAlign = 'center'
   g.textBaseline = 'middle'
+  g.lineJoin = 'round'
   for (let i = 0; i < dn.count; i++) {
     const d = dn.items[i]
-    const a = Math.min(1, d.life / d.maxLife + 0.2)
+    const t = d.life / d.maxLife
+    const a = Math.min(1, t + 0.2)
+    const pop = d.crit ? 1 + 0.5 * Math.max(0, t - 0.6) : 1
+    const size = (d.crit ? 15 : 10) * pop
     g.globalAlpha = a
+    g.font = `${d.crit ? 800 : 700} ${size}px system-ui, sans-serif`
+    g.lineWidth = size * 0.34
+    g.strokeStyle = PAL.outline
+    g.strokeText(d.text, d.x, d.y)
     g.fillStyle = d.color
-    g.font = `${d.crit ? 700 : 600} ${(d.crit ? 13 : 9)}px system-ui, sans-serif`
     g.fillText(d.text, d.x, d.y)
   }
   g.globalAlpha = 1
@@ -88,77 +104,43 @@ function drawGround(g: CanvasRenderingContext2D, r: Renderer, left: number, righ
     if (sprites.groundPattern) {
       g.fillStyle = sprites.groundPattern
       g.fillRect(left, top, right - left, bottom - top)
+    } else {
+      g.fillStyle = PAL.groundBase
+      g.fillRect(left, top, right - left, bottom - top)
     }
-    g.lineWidth = 6 / r.scale
-    g.strokeStyle = PAL.bgGridGlow
+    drawRoadMarkings(g, left, right, top, bottom)
+    // arena border (dark curb)
+    g.lineWidth = 8 / r.scale
+    g.strokeStyle = PAL.outline
     g.strokeRect(0, 0, C.ARENA_W, C.ARENA_H)
     return
   }
-  drawGrid(g, r, left, right, top, bottom)
+  g.fillStyle = PAL.groundBase
+  g.fillRect(left, top, right - left, bottom - top)
 }
 
-function drawGrid(g: CanvasRenderingContext2D, r: Renderer, left: number, right: number, top: number, bottom: number): void {
-  const cell = 64
-  const x0 = Math.floor(left / cell) * cell
-  const y0 = Math.floor(top / cell) * cell
-  g.lineWidth = 1 / r.scale
-  g.strokeStyle = PAL.bgGrid
+// Faint white dashed lane lines at a coarse world grid -> reads as urban streets.
+function drawRoadMarkings(g: CanvasRenderingContext2D, left: number, right: number, top: number, bottom: number): void {
+  const LANE = 512
+  g.strokeStyle = PAL.roadPaint
+  g.lineWidth = 6
+  g.setLineDash([34, 30])
   g.beginPath()
-  for (let x = x0; x <= right; x += cell) {
-    g.moveTo(x, top)
-    g.lineTo(x, bottom)
+  for (let x = Math.floor(left / LANE) * LANE; x <= right; x += LANE) {
+    g.moveTo(x, top); g.lineTo(x, bottom)
   }
-  for (let y = y0; y <= bottom; y += cell) {
-    g.moveTo(left, y)
-    g.lineTo(right, y)
+  for (let y = Math.floor(top / LANE) * LANE; y <= bottom; y += LANE) {
+    g.moveTo(left, y); g.lineTo(right, y)
   }
   g.stroke()
-  // arena border
-  g.lineWidth = 5 / r.scale
-  g.strokeStyle = PAL.bgGridGlow
-  g.strokeRect(0, 0, C.ARENA_W, C.ARENA_H)
-}
-
-function drawShape(g: CanvasRenderingContext2D, x: number, y: number, radius: number, shape: string): void {
-  g.beginPath()
-  switch (shape) {
-    case 'square':
-      g.rect(x - radius, y - radius, radius * 2, radius * 2)
-      break
-    case 'tri':
-      g.moveTo(x, y - radius)
-      g.lineTo(x + radius, y + radius)
-      g.lineTo(x - radius, y + radius)
-      g.closePath()
-      break
-    case 'diamond':
-      g.moveTo(x, y - radius)
-      g.lineTo(x + radius, y)
-      g.lineTo(x, y + radius)
-      g.lineTo(x - radius, y)
-      g.closePath()
-      break
-    case 'hex': {
-      for (let i = 0; i < 6; i++) {
-        const a = (Math.PI / 3) * i - Math.PI / 6
-        const px = x + Math.cos(a) * radius
-        const py = y + Math.sin(a) * radius
-        if (i === 0) g.moveTo(px, py)
-        else g.lineTo(px, py)
-      }
-      g.closePath()
-      break
-    }
-    default:
-      g.arc(x, y, radius, 0, Math.PI * 2)
-  }
+  g.setLineDash([])
 }
 
 function drawShadow(g: CanvasRenderingContext2D, x: number, y: number, radius: number): void {
-  g.globalAlpha = 0.3
+  g.globalAlpha = 0.26
   g.fillStyle = '#000000'
   g.beginPath()
-  g.ellipse(x, y + radius * 0.72, radius * 0.95, radius * 0.42, 0, 0, TAU)
+  g.ellipse(x, y + radius * 0.78, radius * 1.0, radius * 0.44, 0, 0, TAU)
   g.fill()
   g.globalAlpha = 1
 }
@@ -167,8 +149,8 @@ function drawEnemy(g: CanvasRenderingContext2D, x: number, y: number, e: Enemy, 
   drawShadow(g, x, y, e.radius)
   const spr = sprites.enemy(e.defId)
   if (spr) {
-    const drawR = e.radius * 1.4
-    const bob = Math.sin(frame * 0.15 + (x + y) * 0.05) * e.radius * 0.07
+    const drawR = e.radius * 1.55
+    const bob = Math.sin(frame * 0.15 + (x + y) * 0.05) * e.radius * 0.06
     g.drawImage(spr.color, x - drawR, y - drawR - bob, drawR * 2, drawR * 2)
     if (e.hitFlash > 0) {
       g.globalAlpha = Math.min(1, e.hitFlash / 0.08)
@@ -177,70 +159,84 @@ function drawEnemy(g: CanvasRenderingContext2D, x: number, y: number, e: Enemy, 
     }
     return
   }
-  // fallback: simple shape
-  g.globalAlpha = 0.22
-  g.fillStyle = e.glow
-  g.beginPath()
-  g.arc(x, y, e.radius * 1.5, 0, Math.PI * 2)
-  g.fill()
-  g.globalAlpha = 1
+  // fallback: simple circle
   g.fillStyle = e.hitFlash > 0 ? '#ffffff' : e.color
-  drawShape(g, x, y, e.radius, e.shape)
-  g.fill()
+  g.beginPath(); g.arc(x, y, e.radius, 0, TAU); g.fill()
+  g.lineWidth = 2; g.strokeStyle = PAL.outline; g.stroke()
 }
 
 function drawPlayer(g: CanvasRenderingContext2D, x: number, y: number, radius: number, hurt: number): void {
   drawShadow(g, x, y, radius)
   if (sprites.player) {
-    const drawR = radius * 1.75
-    g.drawImage(sprites.player, x - drawR, y - drawR, drawR * 2, drawR * 2)
+    const drawR = radius * 2.3
+    g.drawImage(sprites.player, x - drawR, y - drawR + radius * 0.5, drawR * 2, drawR * 2)
     if (hurt > 0) {
-      g.globalAlpha = Math.min(1, hurt / 0.18)
-      g.fillStyle = '#ffffff'
-      g.beginPath()
-      g.arc(x, y, radius, 0, TAU)
-      g.fill()
+      g.globalAlpha = Math.min(0.7, hurt / 0.18)
+      g.globalCompositeOperation = 'lighter'
+      g.fillStyle = '#ff5d73'
+      g.beginPath(); g.arc(x, y, radius * 1.6, 0, TAU); g.fill()
+      g.globalCompositeOperation = 'source-over'
       g.globalAlpha = 1
     }
     return
   }
-  // fallback
-  g.globalCompositeOperation = 'lighter'
-  drawGlowDot(g, x, y, radius * 1.6, PAL.playerGlow)
-  g.globalCompositeOperation = 'source-over'
   g.fillStyle = hurt > 0 ? '#ffffff' : PAL.player
-  g.beginPath()
-  g.arc(x, y, radius, 0, Math.PI * 2)
-  g.fill()
-  g.fillStyle = PAL.playerCore
-  g.beginPath()
-  g.arc(x, y, radius * 0.45, 0, Math.PI * 2)
-  g.fill()
+  g.beginPath(); g.arc(x, y, radius, 0, TAU); g.fill()
 }
 
-function drawGlowDot(g: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string): void {
+function drawBullet(g: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string): void {
+  // soft glow + bright core
   g.fillStyle = color
-  g.globalAlpha = 0.85
-  g.beginPath()
-  g.arc(x, y, radius, 0, Math.PI * 2)
-  g.fill()
+  g.globalAlpha = 0.5
+  g.beginPath(); g.arc(x, y, radius * 1.8, 0, TAU); g.fill()
   g.globalAlpha = 1
+  g.beginPath(); g.arc(x, y, radius, 0, TAU); g.fill()
 }
 
 function drawGem(g: CanvasRenderingContext2D, x: number, y: number, e: Gem): void {
+  const r = e.radius
+  // diamond gem with dark outline + bright facet
+  g.beginPath()
+  g.moveTo(x, y - r)
+  g.lineTo(x + r, y)
+  g.lineTo(x, y + r)
+  g.lineTo(x - r, y)
+  g.closePath()
   g.fillStyle = e.color
-  g.globalAlpha = 0.9
-  drawShape(g, x, y, e.radius, 'diamond')
   g.fill()
-  g.globalAlpha = 1
+  g.lineWidth = 1.6
+  g.strokeStyle = PAL.outline
+  g.stroke()
+  // facet highlight
+  g.fillStyle = 'rgba(255,255,255,0.6)'
+  g.beginPath()
+  g.moveTo(x, y - r)
+  g.lineTo(x + r * 0.5, y - r * 0.1)
+  g.lineTo(x, y + r * 0.1)
+  g.lineTo(x - r * 0.5, y - r * 0.1)
+  g.closePath()
+  g.fill()
 }
 
 function drawParticle(g: CanvasRenderingContext2D, p: Particle): void {
-  const a = Math.max(0, p.life / p.maxLife)
-  g.globalAlpha = a
+  const fade = Math.max(0, p.life / p.maxLife)
+  if (p.ring) {
+    const t = 1 - fade
+    const rad = lerp(p.r0, p.r1, t)
+    g.globalAlpha = 0.32 * fade
+    g.fillStyle = p.color
+    g.beginPath(); g.arc(p.x, p.y, rad, 0, TAU); g.fill()
+    g.globalAlpha = 0.95 * fade
+    g.lineWidth = Math.max(2.5, rad * 0.14)
+    g.strokeStyle = PAL.aoeRim
+    g.beginPath(); g.arc(p.x, p.y, rad, 0, TAU); g.stroke()
+    g.globalAlpha = 1
+    return
+  }
+  g.globalAlpha = fade
   g.fillStyle = p.color
   g.beginPath()
-  g.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+  g.arc(p.x, p.y, p.size, 0, TAU)
   g.fill()
   g.globalAlpha = 1
 }
@@ -248,6 +244,17 @@ function drawParticle(g: CanvasRenderingContext2D, p: Particle): void {
 // ---------------------------------------------------------------------------
 // HUD / overlays (screen space)
 // ---------------------------------------------------------------------------
+
+function boldText(g: CanvasRenderingContext2D, str: string, x: number, y: number, size: number, fill: string, weight = 800, align: CanvasTextAlign = 'center'): void {
+  g.font = `${weight} ${size}px system-ui, sans-serif`
+  g.textAlign = align
+  g.lineJoin = 'round'
+  g.lineWidth = Math.max(2, size * 0.2)
+  g.strokeStyle = PAL.outline
+  g.strokeText(str, x, y)
+  g.fillStyle = fill
+  g.fillText(str, x, y)
+}
 
 export function renderHud(world: World, r: Renderer, input: InputManager, paused: boolean): void {
   const g = r.ctx
@@ -261,85 +268,76 @@ export function renderHud(world: World, r: Renderer, input: InputManager, paused
   if (hpFrac < 0.3 && run.state === 'playing') {
     const v = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.max(W, H) * 0.7)
     v.addColorStop(0, 'rgba(0,0,0,0)')
-    v.addColorStop(1, `rgba(255,30,60,${0.4 * (1 - hpFrac / 0.3)})`)
+    v.addColorStop(1, `rgba(255,40,70,${0.42 * (1 - hpFrac / 0.3)})`)
     g.fillStyle = v
     g.fillRect(0, 0, W, H)
   }
-
   // hurt flash
   if (p.hurtFlash > 0) {
-    g.fillStyle = `rgba(255,40,70,${0.35 * (p.hurtFlash / 0.18)})`
+    g.fillStyle = `rgba(255,40,70,${0.32 * (p.hurtFlash / 0.18)})`
     g.fillRect(0, 0, W, H)
   }
 
-  // XP bar (top, full width)
+  // XP bar (top, full width, gold)
   const xpFrac = Math.min(1, p.xp / p.xpToNext)
-  g.fillStyle = 'rgba(255,255,255,0.08)'
-  g.fillRect(0, SAFE_TOP, W, 6)
+  const xpY = SAFE_TOP
+  g.fillStyle = 'rgba(0,0,0,0.5)'
+  roundRect(g, 8, xpY, W - 16, 12, 6); g.fill()
+  if (xpFrac > 0) {
+    g.fillStyle = PAL.uiGold
+    roundRect(g, 10, xpY + 2, (W - 20) * xpFrac, 8, 4); g.fill()
+    g.fillStyle = 'rgba(255,255,255,0.35)'
+    roundRect(g, 10, xpY + 2, (W - 20) * xpFrac, 3, 2); g.fill()
+  }
+
+  // top row: LV badge (left), timer (center), kills/gold (right)
+  const rowY = xpY + 30
+  // LV badge
   g.fillStyle = PAL.uiAccent
-  g.fillRect(0, SAFE_TOP, W * xpFrac, 6)
+  roundRect(g, 10, rowY - 11, 56, 22, 8); g.fill()
+  g.lineWidth = 2; g.strokeStyle = PAL.outline; g.stroke()
+  g.textBaseline = 'middle'
+  boldText(g, `LV ${p.level}`, 38, rowY, 13, '#ffffff', 800, 'center')
 
-  // top row: level (left), timer (center), kills/gold (right)
-  g.textBaseline = 'top'
-  g.font = '700 15px system-ui, sans-serif'
-  g.textAlign = 'left'
-  g.fillStyle = PAL.uiAccent
-  g.fillText(`LV ${p.level}`, 12, SAFE_TOP + 12)
+  boldText(g, formatTime(run.elapsed), W / 2, rowY, 24, '#ffffff', 800, 'center')
 
-  g.textAlign = 'center'
-  g.fillStyle = PAL.uiText
-  g.font = '800 22px system-ui, sans-serif'
-  g.fillText(formatTime(run.elapsed), W / 2, SAFE_TOP + 12)
-
-  g.textAlign = 'right'
-  g.font = '700 14px system-ui, sans-serif'
-  g.fillStyle = PAL.uiText
-  g.fillText(`☠ ${run.kills}`, W - 12, SAFE_TOP + 10)
-  g.fillStyle = PAL.gold
-  g.fillText(`◆ ${run.gold}`, W - 12, SAFE_TOP + 30)
+  boldText(g, `☠ ${run.kills}`, W - 12, rowY - 6, 14, '#ffffff', 700, 'right')
+  boldText(g, `◆ ${run.gold}`, W - 12, rowY + 12, 14, PAL.gold, 700, 'right')
 
   // boss HP bar (top center, when a boss is alive)
   if (world.boss && world.boss.alive) {
     const b = world.boss
-    const bw = W * 0.72
-    const bh = 10
+    const bw = W * 0.74
+    const bh = 13
     const bx = (W - bw) / 2
-    const by = SAFE_TOP + 52
-    g.fillStyle = 'rgba(0,0,0,0.5)'
-    roundRect(g, bx - 2, by - 2, bw + 4, bh + 4, 5)
-    g.fill()
-    g.fillStyle = 'rgba(255,255,255,0.1)'
-    roundRect(g, bx, by, bw, bh, 4)
-    g.fill()
-    g.fillStyle = PAL.enemyBoss
-    roundRect(g, bx, by, bw * Math.max(0, b.hp / b.maxHp), bh, 4)
-    g.fill()
-    g.fillStyle = PAL.uiText
-    g.textAlign = 'center'
+    const by = rowY + 22
+    g.fillStyle = 'rgba(0,0,0,0.55)'
+    roundRect(g, bx - 3, by - 3, bw + 6, bh + 6, 7); g.fill()
+    g.fillStyle = 'rgba(255,255,255,0.12)'
+    roundRect(g, bx, by, bw, bh, 5); g.fill()
+    g.fillStyle = PAL.uiWarn
+    roundRect(g, bx, by, bw * Math.max(0, b.hp / b.maxHp), bh, 5); g.fill()
+    g.fillStyle = 'rgba(255,255,255,0.3)'
+    roundRect(g, bx, by, bw * Math.max(0, b.hp / b.maxHp), 4, 2); g.fill()
     g.textBaseline = 'top'
-    g.font = '700 11px system-ui, sans-serif'
-    g.fillText('THE WARDEN', W / 2, by + bh + 3)
+    boldText(g, 'THE WARDEN', W / 2, by + bh + 3, 12, '#ffffff', 800, 'center')
   }
 
-  // HP bar (bottom center)
-  const barW = W * 0.56
-  const barH = 16
+  // HP bar (bottom center, chunky)
+  const barW = W * 0.58
+  const barH = 20
   const barX = (W - barW) / 2
   const barY = H - SAFE_BOTTOM - barH
-  g.fillStyle = 'rgba(0,0,0,0.45)'
-  roundRect(g, barX - 2, barY - 2, barW + 4, barH + 4, 6)
-  g.fill()
-  g.fillStyle = 'rgba(255,255,255,0.1)'
-  roundRect(g, barX, barY, barW, barH, 5)
-  g.fill()
-  g.fillStyle = hpFrac > 0.3 ? PAL.health : '#ff2030'
-  roundRect(g, barX, barY, barW * Math.max(0, hpFrac), barH, 5)
-  g.fill()
-  g.fillStyle = '#fff'
-  g.textAlign = 'center'
+  g.fillStyle = 'rgba(0,0,0,0.55)'
+  roundRect(g, barX - 3, barY - 3, barW + 6, barH + 6, 9); g.fill()
+  g.fillStyle = 'rgba(255,255,255,0.12)'
+  roundRect(g, barX, barY, barW, barH, 7); g.fill()
+  g.fillStyle = hpFrac > 0.3 ? PAL.uiGood : '#ff3040'
+  roundRect(g, barX, barY, barW * Math.max(0, hpFrac), barH, 7); g.fill()
+  g.fillStyle = 'rgba(255,255,255,0.3)'
+  roundRect(g, barX, barY, barW * Math.max(0, hpFrac), 6, 3); g.fill()
   g.textBaseline = 'middle'
-  g.font = '700 11px system-ui, sans-serif'
-  g.fillText(`${Math.ceil(p.hp)} / ${p.maxHp}`, W / 2, barY + barH / 2 + 1)
+  boldText(g, `${Math.ceil(p.hp)} / ${p.maxHp}`, W / 2, barY + barH / 2 + 1, 12, '#ffffff', 800, 'center')
 
   // joystick visual
   if (input.joystick.active) drawJoystick(g, input)
@@ -349,36 +347,32 @@ export function renderHud(world: World, r: Renderer, input: InputManager, paused
   g.textBaseline = 'top'
   g.font = '600 10px monospace'
   g.fillStyle = PAL.uiDim
-  g.fillText(`${Time.fps} fps · ${world.enemies.count}e`, 12, SAFE_TOP + 34)
+  g.fillText(`${Time.fps} fps · ${world.enemies.count}e`, 12, rowY + 16)
 
-  // pause overlay (run end is handled by the GameOver scene)
   if (paused && run.state === 'playing') centerOverlay(g, W, H, 'PAUSED', 'Tap or press P / Esc to resume')
 }
 
 function drawJoystick(g: CanvasRenderingContext2D, input: InputManager): void {
   const j = input.joystick
   g.globalAlpha = 0.5
-  g.strokeStyle = PAL.uiAccent
-  g.lineWidth = 3
-  g.beginPath()
-  g.arc(j.baseX, j.baseY, 56, 0, Math.PI * 2)
-  g.stroke()
+  g.fillStyle = 'rgba(0,0,0,0.3)'
+  g.beginPath(); g.arc(j.baseX, j.baseY, 56, 0, TAU); g.fill()
+  g.lineWidth = 4
+  g.strokeStyle = '#ffffff'
+  g.beginPath(); g.arc(j.baseX, j.baseY, 56, 0, TAU); g.stroke()
   g.fillStyle = PAL.uiAccent
-  g.beginPath()
-  g.arc(j.knobX, j.knobY, 26, 0, Math.PI * 2)
-  g.fill()
+  g.beginPath(); g.arc(j.knobX, j.knobY, 26, 0, TAU); g.fill()
+  g.lineWidth = 3; g.strokeStyle = '#ffffff'; g.stroke()
   g.globalAlpha = 1
 }
 
 function centerOverlay(g: CanvasRenderingContext2D, W: number, H: number, title: string, sub: string): void {
-  g.fillStyle = 'rgba(5,6,10,0.72)'
+  g.fillStyle = 'rgba(20,22,28,0.72)'
   g.fillRect(0, 0, W, H)
-  g.textAlign = 'center'
   g.textBaseline = 'middle'
-  g.fillStyle = PAL.uiAccent
-  g.font = '800 38px system-ui, sans-serif'
-  g.fillText(title, W / 2, H / 2 - 16)
+  boldText(g, title, W / 2, H / 2 - 16, 40, PAL.uiGold, 900, 'center')
   g.fillStyle = PAL.uiText
+  g.textAlign = 'center'
   g.font = '500 15px system-ui, sans-serif'
   g.fillText(sub, W / 2, H / 2 + 26)
 }

@@ -5,9 +5,10 @@ import type { Renderer } from '../../engine/Renderer'
 import type { AppCtx } from '../AppCtx'
 import { Time } from '../../engine/Time'
 import { PAL } from '../../data/palette'
+import { sprites } from '../../engine/SpriteCache'
 import { operatorOf } from '../../data/operators'
 import { sfx } from '../../engine/audio/Sfx'
-import { Rect, hit, button, text, fmtTime } from '../ui/widgets'
+import { Rect, hit, button, text, ribbon, fmtTime } from '../ui/widgets'
 import { RunScene } from './RunScene'
 import { MetaShopScene } from './MetaShopScene'
 import { CharacterSelectScene } from './CharacterSelectScene'
@@ -70,47 +71,49 @@ export class MainMenuScene implements Scene {
     const g = r.ctx
     const W = r.viewW
     const H = r.viewH
-    r.clear(PAL.bg)
     r.beginScreen()
 
-    // drifting grid backdrop
-    const cell = 46
-    const off = (Time.frame * 0.4) % cell
-    g.strokeStyle = PAL.bgGrid
-    g.lineWidth = 1
-    g.beginPath()
-    for (let x = -off; x <= W; x += cell) {
-      g.moveTo(x, 0)
-      g.lineTo(x, H)
-    }
+    // sky->ground vertical gradient backdrop
+    const bg = g.createLinearGradient(0, 0, 0, H)
+    bg.addColorStop(0, '#2c3140')
+    bg.addColorStop(0.55, '#262a33')
+    bg.addColorStop(1, PAL.groundDark)
+    g.fillStyle = bg
+    g.fillRect(0, 0, W, H)
+    // drifting dot field
+    const cell = 40
+    const off = (Time.frame * 0.3) % cell
+    g.fillStyle = 'rgba(255,255,255,0.04)'
     for (let y = -off; y <= H; y += cell) {
-      g.moveTo(0, y)
-      g.lineTo(W, y)
+      for (let x = -off; x <= W; x += cell) {
+        g.beginPath(); g.arc(x, y, 1.5, 0, Math.PI * 2); g.fill()
+      }
     }
-    g.stroke()
 
-    // glow orb behind title
     const cx = W / 2
-    const oy = H * 0.26
-    const grad = g.createRadialGradient(cx, oy, 0, cx, oy, 130)
-    grad.addColorStop(0, 'rgba(63,224,255,0.32)')
-    grad.addColorStop(1, 'rgba(63,224,255,0)')
-    g.fillStyle = grad
-    g.fillRect(cx - 150, oy - 150, 300, 300)
+    const oy = H * 0.2
 
-    text(g, 'SURVIVOR ZERO', cx, oy, 40, PAL.uiText, 900, 'center')
-    text(g, 'endless neon horde survival', cx, oy + 32, 14, PAL.uiDim, 500, 'center')
+    // title: gold "SURVIVOR" + ".io"-style tag
+    text(g, 'SURVIVOR', cx, oy, 46, PAL.uiGold, 900, 'center', true)
+    text(g, 'ZERO', cx, oy + 40, 30, '#ffffff', 900, 'center', true)
+
+    // hero mascot
+    if (sprites.player) {
+      const bob = Math.sin(Time.frame * 0.05) * 6
+      const size = Math.min(W * 0.5, 200)
+      g.drawImage(sprites.player, cx - size / 2, H * 0.32 + bob, size, size)
+    }
 
     const s = this.ctx.save.data
-    text(g, `Best ${fmtTime(s.bestTime)} · ${s.bestKills} kills`, cx, H * 0.46, 15, PAL.uiText, 600, 'center')
-    text(g, `◆ ${s.totalGold} banked`, cx, H * 0.46 + 24, 15, PAL.gold, 700, 'center')
-    text(g, `Hero: ${operatorOf(s.selectedOperator).name}`, cx, H * 0.46 + 48, 14, PAL.uiAccent, 600, 'center')
+    text(g, `Best ${fmtTime(s.bestTime)} · ${s.bestKills} kills`, cx, H * 0.54, 15, PAL.uiText, 700, 'center', true)
+    ribbon(g, cx, H * 0.585, 180, `${s.totalGold} GOLD`)
+    text(g, `Hero: ${operatorOf(s.selectedOperator).name}`, cx, H * 0.585 + 34, 14, PAL.uiDim, 600, 'center')
 
-    const pulse = 0.7 + 0.3 * Math.sin(Time.frame * 0.07)
+    const pulse = 0.85 + 0.15 * Math.sin(Time.frame * 0.07)
     g.globalAlpha = pulse
-    button(g, this.playBtn, 'PLAY', PAL.uiAccent)
+    button(g, this.playBtn, 'PLAY', PAL.uiGood)
     g.globalAlpha = 1
-    button(g, this.shopBtn, 'UPGRADES', PAL.uiText)
-    button(g, this.heroBtn, 'HEROES', PAL.uiText)
+    button(g, this.shopBtn, 'UPGRADES', PAL.uiAccent)
+    button(g, this.heroBtn, 'HEROES', PAL.uiGold)
   }
 }
