@@ -17,7 +17,7 @@ export const C = {
 
   // --- Camera / view ---
   CAM_LERP: 0.12, // per fixed step
-  VIEW_WIDTH: 560, // WU visible across the screen width (portrait, fit-by-width)
+  VIEW_WIDTH: 500, // WU visible across the screen width (portrait, fit-by-width) — zoomed for creature visibility
   CAM_LOOKAHEAD: 0.1,
   CAM_LOOKAHEAD_CLAMP: 44,
   SHAKE_MAX: 18, // px

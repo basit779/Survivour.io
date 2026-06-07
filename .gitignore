@@ -5,6 +5,9 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+# QA screenshots
+tools/shots/
+
 # capacitor native projects (generated)
 /android
 /ios

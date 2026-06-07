@@ -15,6 +15,7 @@
     "cap:ios": "npm run build && cap sync ios && cap open ios"
   },
   "devDependencies": {
+    "playwright": "^1.60.0",
     "tsx": "^4.22.4",
     "typescript": "^5.6.3",
     "vite": "^5.4.10"

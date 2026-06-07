@@ -83,6 +83,7 @@ export class RunScene implements Scene {
 
     r.clear(PAL.bg)
     renderWorld(this.world, r, alpha)
-    renderHud(this.world, r, this.ctx.input, this.ctx.engine.timeScale === 0)
+    // only show the PAUSED overlay for a real pause, not the level-up freeze
+    renderHud(this.world, r, this.ctx.input, this.ctx.engine.timeScale === 0 && isTop)
   }
 }
