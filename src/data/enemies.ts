@@ -9,12 +9,12 @@ import { PAL } from './palette'
 export const ENEMIES: Record<string, EnemyDef> = {
   swarmer: {
     id: 'swarmer', name: 'Swarmer', behavior: 'chase',
-    hp: 14, speed: 60, contact: 7, radius: 12, mass: 1, xp: 1, gold: 1,
+    hp: 14, speed: 52, contact: 7, radius: 12, mass: 1, xp: 1, gold: 1,
     color: PAL.enemySwarmer, glow: '#5a8a2e', shape: 'circle',
   },
   runner: {
     id: 'runner', name: 'Runner', behavior: 'fast',
-    hp: 9, speed: 118, contact: 6, radius: 10, mass: 0.8, xp: 1, gold: 1,
+    hp: 9, speed: 104, contact: 6, radius: 10, mass: 0.8, xp: 1, gold: 1,
     color: PAL.enemyRunner, glow: '#8a7050', shape: 'tri',
   },
   brute: {

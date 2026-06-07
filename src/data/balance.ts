@@ -8,9 +8,9 @@ export const C = {
   MAX_STEPS: 5,
 
   // --- Player ---
-  PLAYER_MAX_SPEED: 170, // WU/s
-  PLAYER_ACCEL: 1600, // WU/s^2
-  PLAYER_DECEL: 2200, // WU/s^2
+  PLAYER_MAX_SPEED: 200, // WU/s — clearly outruns the basic horde (you kite)
+  PLAYER_ACCEL: 2000, // WU/s^2 — snappy response
+  PLAYER_DECEL: 2600, // WU/s^2
   PLAYER_RADIUS: 14, // WU
   PLAYER_BASE_HP: 100,
   MOVE_DEADZONE: 0.18,
@@ -53,8 +53,8 @@ export const C = {
   CRIT_MULT: 1.5,
 
   // --- Spawn director ---
-  SPAWN_RING_MIN: 1.05, // * half view diagonal: just offscreen
-  SPAWN_RING_MAX: 1.35,
+  SPAWN_RING_MIN: 1.08, // * half view diagonal: just offscreen
+  SPAWN_RING_MAX: 1.5,
 } as const
 
 // Difficulty scaling sampled at spawn time (snapshot, not live).
@@ -65,10 +65,12 @@ export function dmgScale(minutes: number): number {
   return 1 + 0.05 * minutes
 }
 export function speedScale(minutes: number): number {
-  return Math.min(1.18, 1 + 0.012 * minutes)
+  // Capped low so the basic horde never out-paces the player — you always kite.
+  return Math.min(1.1, 1 + 0.007 * minutes)
 }
 
-// On-screen soft target enemy count over the run (minutes 0..15).
+// On-screen soft target enemy count. A real Survivor.io-style horde is a dense
+// slow wall you weave through — hundreds on screen, not dozens.
 export function targetEnemyCount(minutes: number): number {
-  return Math.min(260, Math.round(30 + minutes * 16))
+  return Math.min(450, Math.round(60 + minutes * 60))
 }

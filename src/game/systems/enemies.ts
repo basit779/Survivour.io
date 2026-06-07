@@ -132,12 +132,13 @@ export function updateSpawnDirector(world: World, dt: number): void {
     spawnAt(world, 'elite_brute', minutes, 0.95)
   }
 
-  // ambient swarm toward the on-screen target curve
+  // ambient swarm toward the on-screen target curve. Spawn in fast, big batches
+  // so the horde actually reaches (and stays at) a dense wall despite kill rate.
   const target = Math.min(targetEnemyCount(minutes), C.MAX_ENEMIES)
   world.spawnTimer -= dt
   if (world.spawnTimer <= 0 && world.enemies.count < target) {
-    world.spawnTimer = 0.35
-    const batch = Math.min(8, target - world.enemies.count)
+    world.spawnTimer = 0.14
+    const batch = Math.min(22, target - world.enemies.count)
     for (let i = 0; i < batch; i++) spawnAt(world, pickEnemy(world, minutes), minutes, world.rng.range(C.SPAWN_RING_MIN, C.SPAWN_RING_MAX))
   }
 }
@@ -163,27 +164,29 @@ function spawnBoss(world: World, minutes: number): void {
   sfx.bossSpawn()
 }
 
+// Swarmer (slow shambler) stays the dominant mass so the horde reads as a thick
+// slow wall; fast/special types are the minority spice.
 function pickEnemy(world: World, minutes: number): string {
   const r = world.rng.next()
-  if (minutes >= 4) {
-    if (r < 0.1) return 'splitter'
-    if (r < 0.22) return 'bomber'
-    if (r < 0.34) return 'spitter'
-    if (r < 0.46) return 'brute'
-    if (r < 0.66) return 'runner'
-    return 'swarmer'
+  if (minutes >= 5) {
+    if (r < 0.07) return 'splitter'
+    if (r < 0.15) return 'bomber'
+    if (r < 0.24) return 'spitter'
+    if (r < 0.34) return 'brute'
+    if (r < 0.48) return 'runner'
+    return 'swarmer' // ~52%
   }
-  if (minutes >= 2) {
-    if (r < 0.12) return 'bomber'
-    if (r < 0.26) return 'spitter'
-    if (r < 0.4) return 'brute'
-    if (r < 0.62) return 'runner'
-    return 'swarmer'
+  if (minutes >= 3) {
+    if (r < 0.07) return 'bomber'
+    if (r < 0.16) return 'spitter'
+    if (r < 0.28) return 'brute'
+    if (r < 0.42) return 'runner'
+    return 'swarmer' // ~58%
   }
   if (minutes >= 1) {
-    if (r < 0.1) return 'brute'
-    if (r < 0.4) return 'runner'
-    return 'swarmer'
+    if (r < 0.07) return 'brute'
+    if (r < 0.24) return 'runner'
+    return 'swarmer' // ~76%
   }
-  return r < 0.2 ? 'runner' : 'swarmer'
+  return r < 0.12 ? 'runner' : 'swarmer' // ~88% early
 }

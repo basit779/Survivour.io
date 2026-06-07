@@ -30,8 +30,16 @@ building the look from memory. So this session: **researched first, then rebuilt
   (`tools/shot.mjs`) compared against the real reference — menu, gameplay (kited horde),
   level-up, game-over all read as Survivor.io. Screenshots in `tools/shots/` (gitignored).
 
-**Known next (feel/content, deferred):** richer late-game horde density tuning; weapon
-projectile VFX could be punchier; evolution golden-chest moment; biome variety.
+**Feel pass (session 3b):** rebalanced to the real Survivor.io horde feel — player
+200 WU/s (was 170) clearly outruns a **dense, slow-shambling** horde; swarmer slowed
+to 52 and made the dominant mass; on-screen target 60→450 (was ~30→260) with fast
+big spawn batches so it actually stays a wall (peak 20→120 enemies in the 60s smoke);
+late-game speed scaling capped at 1.1x so zombies never out-pace you. Verified via
+screenshots (dense kited horde) + smoke (3390 kills/60s, player survives).
+
+**Known next (feel/content, deferred):** rework upgrades/skill choices to match
+Survivor.io; punchier weapon projectile VFX; evolution golden-chest moment; biome
+variety (dirt/urban/lab grounds).
 
 ## Where we are
 
