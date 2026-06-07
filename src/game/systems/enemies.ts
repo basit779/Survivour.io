@@ -116,13 +116,30 @@ export function updateEnemyAI(world: World, dt: number): void {
 // Spawn director
 // ---------------------------------------------------------------------------
 
+const WARN_LEAD = 8 // seconds of "ZOMBIES INCOMING" before a boss
+
 export function updateSpawnDirector(world: World, dt: number): void {
   const minutes = world.run.elapsed / 60
+
+  // pre-boss warning + one-time swarm burst (the iconic "ZOMBIES INCOMING")
+  const nextBossT = world.bossIndex < C.BOSS_TIMES.length ? C.BOSS_TIMES[world.bossIndex] : Infinity
+  const tToBoss = nextBossT - world.run.elapsed
+  if (tToBoss > 0 && tToBoss <= WARN_LEAD) {
+    world.run.warning = tToBoss
+    if (!world.warnedSwarm) {
+      world.warnedSwarm = true
+      for (let i = 0; i < 50; i++) spawnAt(world, pickEnemy(world, minutes), minutes, world.rng.range(1.15, 1.7))
+      sfx.bossSpawn()
+    }
+  } else {
+    world.run.warning = 0
+  }
 
   // scheduled bosses at 5/10/15 min
   if (world.bossIndex < C.BOSS_TIMES.length && world.run.elapsed >= C.BOSS_TIMES[world.bossIndex]) {
     spawnBoss(world, minutes)
     world.bossIndex++
+    world.warnedSwarm = false // arm the warning for the next boss
   }
 
   // periodic elite after 2 minutes

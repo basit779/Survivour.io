@@ -22,6 +22,8 @@ export class RunState {
   kills = 0
   gold = 0
   pendingLevels = 0
+  /** Seconds until the next boss while in the pre-boss warning window (else 0). */
+  warning = 0
   state: 'playing' | 'dead' | 'win' = 'playing'
 }
 
@@ -40,6 +42,8 @@ export class World {
   eliteTimer = 0
   /** Index into C.BOSS_TIMES of the next boss to spawn. */
   bossIndex = 0
+  /** Whether the one-time pre-boss swarm burst has fired for the pending boss. */
+  warnedSwarm = false
   /** Currently-alive boss (for the boss HP bar), or null. */
   boss: Enemy | null = null
 
@@ -95,10 +99,12 @@ export class World {
     this.run.kills = 0
     this.run.gold = 0
     this.run.pendingLevels = 0
+    this.run.warning = 0
     this.run.state = 'playing'
     this.spawnTimer = 0
     this.eliteTimer = 0
     this.bossIndex = 0
+    this.warnedSwarm = false
     this.boss = null
 
     this.camera.setImmediate(p.x, p.y)
@@ -208,8 +214,11 @@ export class World {
     g.value = value
     g.kind = kind
     g.magnetized = false
-    g.color = kind === 'xp' ? (value >= 10 ? PAL.xpGemBig : PAL.xpGem) : kind === 'gold' ? PAL.gold : PAL.health
-    g.radius = kind === 'xp' ? (value >= 10 ? 6.5 : 5) : 6.5
+    if (kind === 'bomb') { g.color = PAL.aoeFire; g.radius = 12 }
+    else if (kind === 'magnet') { g.color = PAL.uiAccent; g.radius = 12 }
+    else if (kind === 'health') { g.color = PAL.health; g.radius = 10 }
+    else if (kind === 'gold') { g.color = PAL.gold; g.radius = 6.5 }
+    else { g.color = value >= 10 ? PAL.xpGemBig : PAL.xpGem; g.radius = value >= 10 ? 6.5 : 5 }
   }
 
   spawnParticle(x: number, y: number, vx: number, vy: number, life: number, size: number, color: string): void {

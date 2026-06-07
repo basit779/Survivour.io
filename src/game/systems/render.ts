@@ -194,6 +194,10 @@ function drawBullet(g: CanvasRenderingContext2D, x: number, y: number, radius: n
 }
 
 function drawGem(g: CanvasRenderingContext2D, x: number, y: number, e: Gem): void {
+  if (e.kind === 'bomb' || e.kind === 'magnet' || e.kind === 'health') {
+    drawItem(g, x, y, e)
+    return
+  }
   const r = e.radius
   // diamond gem with dark outline + bright facet
   g.beginPath()
@@ -216,6 +220,44 @@ function drawGem(g: CanvasRenderingContext2D, x: number, y: number, e: Gem): voi
   g.lineTo(x - r * 0.5, y - r * 0.1)
   g.closePath()
   g.fill()
+}
+
+// Field items (bomb / magnet / heal): chunky outlined icons with a pulsing halo.
+function drawItem(g: CanvasRenderingContext2D, x: number, y: number, e: Gem): void {
+  const r = e.radius
+  const pulse = 1 + 0.12 * Math.sin(Time.frame * 0.12)
+  // halo
+  g.globalAlpha = 0.35 + 0.15 * Math.sin(Time.frame * 0.12)
+  g.fillStyle = e.color
+  g.beginPath(); g.arc(x, y, r * 1.7 * pulse, 0, TAU); g.fill()
+  g.globalAlpha = 1
+  // badge
+  g.fillStyle = e.color
+  g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill()
+  g.lineWidth = 2.5; g.strokeStyle = PAL.outline; g.stroke()
+  g.fillStyle = '#ffffff'
+  if (e.kind === 'health') {
+    // plus
+    const t = r * 0.34
+    g.fillRect(x - t / 2, y - r * 0.6, t, r * 1.2)
+    g.fillRect(x - r * 0.6, y - t / 2, r * 1.2, t)
+  } else if (e.kind === 'bomb') {
+    // dark bomb core + fuse spark
+    g.fillStyle = PAL.outline
+    g.beginPath(); g.arc(x, y + r * 0.1, r * 0.5, 0, TAU); g.fill()
+    g.strokeStyle = '#ffffff'; g.lineWidth = 2
+    g.beginPath(); g.moveTo(x, y - r * 0.4); g.lineTo(x + r * 0.4, y - r * 0.8); g.stroke()
+    g.fillStyle = PAL.aoeRim
+    g.beginPath(); g.arc(x + r * 0.45, y - r * 0.85, r * 0.22, 0, TAU); g.fill()
+  } else {
+    // magnet: red horseshoe with light tips
+    g.lineWidth = r * 0.42
+    g.strokeStyle = '#ffffff'
+    g.beginPath(); g.arc(x, y + r * 0.1, r * 0.5, Math.PI * 0.9, Math.PI * 2.1, false); g.stroke()
+    g.lineWidth = r * 0.22
+    g.strokeStyle = PAL.outline
+    g.beginPath(); g.arc(x, y + r * 0.1, r * 0.5, Math.PI * 0.9, Math.PI * 2.1, false); g.stroke()
+  }
 }
 
 function drawParticle(g: CanvasRenderingContext2D, p: Particle): void {
@@ -321,6 +363,21 @@ export function renderHud(world: World, r: Renderer, input: InputManager, paused
     roundRect(g, bx, by, bw * Math.max(0, b.hp / b.maxHp), 4, 2); g.fill()
     g.textBaseline = 'top'
     boldText(g, 'THE WARDEN', W / 2, by + bh + 3, 12, '#ffffff', 800, 'center')
+  }
+
+  // "ZOMBIES INCOMING" pre-boss warning banner
+  if (run.warning > 0 && run.state === 'playing') {
+    const blink = 0.55 + 0.45 * Math.sin(Time.frame * 0.35)
+    const by = H * 0.26
+    const bw = Math.min(W * 0.82, 340)
+    g.globalAlpha = blink
+    g.fillStyle = '#d11f3a'
+    roundRect(g, (W - bw) / 2, by - 22, bw, 44, 10); g.fill()
+    g.lineWidth = 3; g.strokeStyle = PAL.outline
+    roundRect(g, (W - bw) / 2, by - 22, bw, 44, 10); g.stroke()
+    g.globalAlpha = 1
+    g.textBaseline = 'middle'
+    boldText(g, `⚠ ZOMBIES INCOMING`, W / 2, by, 18, '#ffffff', 900, 'center')
   }
 
   // HP bar (bottom center, chunky)

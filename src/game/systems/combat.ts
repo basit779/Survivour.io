@@ -205,14 +205,27 @@ export function updateDeaths(world: World): void {
         world.spawnGem(e.x + world.rng.range(-30, 30), e.y + world.rng.range(-30, 30), Math.ceil(e.gold / 10), 'gold')
       }
       world.spawnGem(e.x, e.y, Math.round(p.maxHp * 0.3), 'health')
+      // boss "golden chest": guaranteed bomb + magnet pickups
+      world.spawnGem(e.x - 24, e.y, 0, 'bomb')
+      world.spawnGem(e.x + 24, e.y, 0, 'magnet')
       world.camera.addTrauma(0.6)
       world.spawnRing(e.x, e.y, e.radius * 4.5, PAL.aoeFire, 0.7)
       world.spawnRing(e.x, e.y, e.radius * 3, PAL.aoeRim, 0.5)
       world.boss = null
       sfx.bossDie()
+    } else if (e.defId === 'elite_brute') {
+      // elites drop a field item (bomb or magnet) + a wad of gold
+      world.spawnGem(e.x, e.y, e.xp, 'xp')
+      world.spawnGem(e.x, e.y, e.gold, 'gold')
+      world.spawnGem(e.x, e.y, 0, world.rng.next() < 0.5 ? 'bomb' : 'magnet')
+      sfx.enemyDie()
     } else {
       world.spawnGem(e.x, e.y, e.xp, 'xp')
       if (world.rng.next() < 0.12) world.spawnGem(e.x, e.y, e.gold, 'gold')
+      // rare field-item drops from trash
+      const r = world.rng.next()
+      if (r < 0.004) world.spawnGem(e.x, e.y, Math.round(p.maxHp * 0.25), 'health')
+      else if (r < 0.006) world.spawnGem(e.x, e.y, 0, 'magnet')
       if (e.behavior !== 'suicide') sfx.enemyDie()
     }
 

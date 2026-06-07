@@ -110,7 +110,7 @@ export class Projectile {
   rehitTimer = 0 // orbit weapons clear hitList on this interval to re-hit
 }
 
-export type GemKind = 'xp' | 'gold' | 'health'
+export type GemKind = 'xp' | 'gold' | 'health' | 'bomb' | 'magnet'
 
 export class Gem {
   alive = false
