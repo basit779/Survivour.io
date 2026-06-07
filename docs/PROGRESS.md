@@ -52,12 +52,22 @@ states).
 - Spawn director: time-phased enemy mix, periodic elites, scheduled bosses at
   5/10/15 min, difficulty scaling (HP/damage/speed) applied at spawn.
 
+### Built in session 2d (game wrapper + persistence)
+- **Scene flow**: MainMenu → Run → GameOver → (Retry / Menu). Scenes now share an
+  `AppCtx` (input/engine/scenes/save). `SceneManager.replaceAll` for navigation.
+- **MainMenuScene**: animated neon title, best time/kills + banked gold, tap to play.
+- **GameOverScene**: results summary (time/kills/gold), Retry / Menu buttons.
+- **Persistence** (`SaveManager`, localStorage): banks gold + tracks best
+  time/kills/runs across sessions.
+
 ### 🔜 Next (resume here) — continue the milestone ladder
 1. **Weapon evolutions** (rest of step 6): evolution recipes (weapon Lv5 + paired
    passive → evolved weapon), a couple more weapons toward the 10-weapon roster.
-2. **Meta + persistence** (step 8): currencies, permanent upgrade shop,
-   characters, save system; main menu + game-over summary scenes.
-3. Then juice → audio → ship hardening (steps 9–11).
+2. **Juice + audio** (steps 9–10): synthesized SFX/music, hitstop, more particle
+   polish, screen-shake tuning — the "premium feel" pass.
+3. **Full meta shop + characters** (rest of step 8): spend banked gold on permanent
+   upgrades; selectable operators.
+4. Then ship hardening (step 11): Capacitor native wrap, icons/splash, store builds.
 
 **Original foundation (session 1) below.**
 

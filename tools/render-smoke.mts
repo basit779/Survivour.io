@@ -4,6 +4,8 @@
 import { World } from '../src/game/World'
 import { renderWorld, renderHud } from '../src/game/systems/render'
 import { LevelUpScene } from '../src/game/scenes/LevelUpScene'
+import { MainMenuScene } from '../src/game/scenes/MainMenuScene'
+import { GameOverScene } from '../src/game/scenes/GameOverScene'
 
 // A permissive Canvas2D stub: every method is a no-op; gradient creators return
 // an object with addColorStop.
@@ -27,6 +29,7 @@ const renderer: any = {
   scale: 2,
   viewW: 400,
   viewH: 800,
+  clear() {},
   beginWorld() {},
   beginScreen() {},
   worldLeft: (camX: number) => camX - 200,
@@ -70,20 +73,39 @@ tryRender('paused', 'playing', true)
 tryRender('dead', 'dead', false)
 tryRender('win', 'win', false)
 
-// LevelUpScene overlay
+// Scene overlays
 world.run.state = 'playing'
-const engineStub: any = { timeScale: 1 }
-const scenesStub: any = { pop() {}, top: null }
-const luInput: any = { consumePick: () => 0, consumeTap: () => false, tapX: 0, tapY: 0 }
-try {
-  const lu = new LevelUpScene(world, luInput, engineStub, scenesStub)
+const ctxStub: any = {
+  input: { update() {}, consumePick: () => 0, consumeTap: () => false, consumeConfirm: () => false, consumeRestart: () => false, consumePause: () => false, tapX: 0, tapY: 0 },
+  engine: { timeScale: 1 },
+  scenes: { pop() {}, top: null, replaceAll() {}, push() {} },
+  save: { data: { bestTime: 0, bestKills: 0, totalGold: 0, runs: 0 }, recordRun() {} },
+}
+function tryScene(label: string, fn: () => void): void {
+  try {
+    fn()
+    console.log(`  ${label}: ok`)
+  } catch (e) {
+    failed = true
+    console.error(`  ${label}: THREW`, e)
+  }
+}
+
+tryScene('levelup', () => {
+  const lu = new LevelUpScene(ctxStub, world)
   lu.enter()
   lu.render(renderer, 0)
-  console.log('  levelup: ok')
-} catch (e) {
-  failed = true
-  console.error('  levelup: THREW', e)
-}
+})
+tryScene('mainmenu', () => {
+  const m = new MainMenuScene(ctxStub)
+  m.render(renderer, 0)
+})
+tryScene('gameover', () => {
+  world.run.state = 'dead'
+  const go = new GameOverScene(ctxStub, world, { restart() {} } as any)
+  go.enter()
+  go.render(renderer, 0)
+})
 
 console.log(failed ? '\nFAIL ❌' : '\nPASS ✅')
 process.exit(failed ? 1 : 0)

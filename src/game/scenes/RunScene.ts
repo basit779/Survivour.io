@@ -1,11 +1,11 @@
 // The game itself: owns a World, drives the fixed system order each tick, renders
-// the world + HUD, and handles pause / tap-to-retry.
+// the world + HUD, handles pause, pushes the level-up overlay, and hands off to
+// the GameOver scene when the run ends.
 import type { Scene } from '../../engine/Scene'
 import type { Renderer } from '../../engine/Renderer'
-import type { InputManager } from '../../input/InputManager'
-import type { Engine } from '../../engine/Engine'
-import type { SceneManager } from '../../engine/SceneManager'
+import type { AppCtx } from '../AppCtx'
 import { LevelUpScene } from './LevelUpScene'
+import { GameOverScene } from './GameOverScene'
 import { C } from '../../data/balance'
 import { PAL } from '../../data/palette'
 import { World } from '../World'
@@ -20,15 +20,21 @@ import { renderWorld, renderHud } from '../systems/render'
 export class RunScene implements Scene {
   readonly world: World
   private prevPointer = false
+  private endedHandled = false
 
   constructor(
-    private input: InputManager,
-    private engine: Engine,
-    private scenes: SceneManager,
+    private ctx: AppCtx,
     seed?: number,
   ) {
     this.world = new World(seed)
     this.world.reset()
+  }
+
+  /** Called by GameOver "Retry" to restart in place. */
+  restart(): void {
+    this.world.reset()
+    this.endedHandled = false
+    this.ctx.engine.timeScale = 1
   }
 
   fixedUpdate(dt: number): void {
@@ -37,7 +43,7 @@ export class RunScene implements Scene {
 
     snapshotPrev(w)
     w.run.elapsed += dt
-    updatePlayerControl(w, this.input, dt)
+    updatePlayerControl(w, this.ctx.input, dt)
     updateSpawnDirector(w, dt)
     buildEnemyGrid(w)
     updateEnemyAI(w, dt)
@@ -56,28 +62,26 @@ export class RunScene implements Scene {
   }
 
   render(r: Renderer, alpha: number): void {
-    this.input.update()
+    this.ctx.input.update()
     const run = this.world.run
-    const isTop = this.scenes.top === this
+    const isTop = this.ctx.scenes.top === this
 
     if (isTop) {
-      const justPressed = this.input.pointerDown && !this.prevPointer
-      if (run.state !== 'playing') {
-        if (justPressed || this.input.consumeRestart() || this.input.consumeConfirm()) {
-          this.world.reset()
-          this.engine.timeScale = 1
-        }
-      } else {
-        if (this.input.consumePause()) this.engine.timeScale = this.engine.timeScale > 0 ? 0 : 1
-        else if (this.engine.timeScale === 0 && justPressed) this.engine.timeScale = 1
-        // queue the level-up overlay when XP thresholds were crossed
-        if (run.pendingLevels > 0) this.scenes.push(new LevelUpScene(this.world, this.input, this.engine, this.scenes))
+      if (run.state === 'playing') {
+        const justPressed = this.ctx.input.pointerDown && !this.prevPointer
+        if (this.ctx.input.consumePause()) this.ctx.engine.timeScale = this.ctx.engine.timeScale > 0 ? 0 : 1
+        else if (this.ctx.engine.timeScale === 0 && justPressed) this.ctx.engine.timeScale = 1
+        if (run.pendingLevels > 0) this.ctx.scenes.push(new LevelUpScene(this.ctx, this.world))
+      } else if (!this.endedHandled) {
+        this.endedHandled = true
+        this.ctx.engine.timeScale = 1
+        this.ctx.scenes.push(new GameOverScene(this.ctx, this.world, this))
       }
     }
-    this.prevPointer = this.input.pointerDown
+    this.prevPointer = this.ctx.input.pointerDown
 
     r.clear(PAL.bg)
     renderWorld(this.world, r, alpha)
-    renderHud(this.world, r, this.input, this.engine.timeScale === 0)
+    renderHud(this.world, r, this.ctx.input, this.ctx.engine.timeScale === 0)
   }
 }

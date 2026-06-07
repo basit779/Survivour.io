@@ -22,6 +22,12 @@ export class SceneManager {
     this.push(scene)
   }
 
+  /** Clear the entire stack and start fresh with one scene. */
+  replaceAll(scene: Scene): void {
+    while (this.stack.length) this.pop()
+    this.push(scene)
+  }
+
   get top(): Scene | undefined {
     return this.stack[this.stack.length - 1]
   }

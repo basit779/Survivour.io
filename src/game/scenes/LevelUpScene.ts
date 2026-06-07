@@ -3,9 +3,7 @@
 // are queued, RunScene immediately pushes a fresh one.
 import type { Scene } from '../../engine/Scene'
 import type { Renderer } from '../../engine/Renderer'
-import type { Engine } from '../../engine/Engine'
-import type { SceneManager } from '../../engine/SceneManager'
-import type { InputManager } from '../../input/InputManager'
+import type { AppCtx } from '../AppCtx'
 import type { World } from '../World'
 import type { Choice } from '../../data/schema'
 import { PAL, RARITY } from '../../data/palette'
@@ -24,16 +22,14 @@ export class LevelUpScene implements Scene {
   private rects: Rect[] = []
 
   constructor(
+    private ctx: AppCtx,
     private world: World,
-    private input: InputManager,
-    private engine: Engine,
-    private scenes: SceneManager,
   ) {
     this.choices = generateChoices(world)
   }
 
   enter(): void {
-    this.engine.timeScale = 0
+    this.ctx.engine.timeScale = 0
   }
 
   fixedUpdate(): void {
@@ -62,14 +58,14 @@ export class LevelUpScene implements Scene {
   }
 
   private handleInput(): void {
-    const pick = this.input.consumePick()
+    const pick = this.ctx.input.consumePick()
     if (pick >= 1 && pick <= this.choices.length) {
       this.select(pick - 1)
       return
     }
-    if (this.input.consumeTap()) {
-      const tx = this.input.tapX
-      const ty = this.input.tapY
+    if (this.ctx.input.consumeTap()) {
+      const tx = this.ctx.input.tapX
+      const ty = this.ctx.input.tapY
       for (let i = 0; i < this.rects.length; i++) {
         const rc = this.rects[i]
         if (tx >= rc.x && tx <= rc.x + rc.w && ty >= rc.y && ty <= rc.y + rc.h) {
@@ -83,8 +79,8 @@ export class LevelUpScene implements Scene {
   private select(i: number): void {
     applyChoice(this.world, this.choices[i])
     this.world.run.pendingLevels = Math.max(0, this.world.run.pendingLevels - 1)
-    this.scenes.pop()
-    if (this.world.run.pendingLevels <= 0) this.engine.timeScale = 1
+    this.ctx.scenes.pop()
+    if (this.world.run.pendingLevels <= 0) this.ctx.engine.timeScale = 1
   }
 
   private draw(r: Renderer): void {

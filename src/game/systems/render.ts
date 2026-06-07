@@ -301,10 +301,8 @@ export function renderHud(world: World, r: Renderer, input: InputManager, paused
   g.fillStyle = PAL.uiDim
   g.fillText(`${Time.fps} fps · ${world.enemies.count}e`, 12, SAFE_TOP + 34)
 
-  // overlays
-  if (paused && run.state === 'playing') centerOverlay(g, W, H, 'PAUSED', 'Press P / Esc to resume')
-  else if (run.state === 'dead') centerOverlay(g, W, H, 'YOU DIED', `Survived ${formatTime(run.elapsed)} · ${run.kills} kills — tap to retry`)
-  else if (run.state === 'win') centerOverlay(g, W, H, 'YOU SURVIVED!', `${run.kills} kills · ${run.gold} gold — tap to play again`)
+  // pause overlay (run end is handled by the GameOver scene)
+  if (paused && run.state === 'playing') centerOverlay(g, W, H, 'PAUSED', 'Tap or press P / Esc to resume')
 }
 
 function drawJoystick(g: CanvasRenderingContext2D, input: InputManager): void {
