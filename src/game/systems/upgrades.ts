@@ -1,7 +1,7 @@
 // Level-up choice generation and application. Builds a weighted candidate pool
 // (upgrade owned weapon/passive, gain new weapon/passive), samples 3 distinct
 // cards, and applies the picked one — then recomputes player stats.
-import { WEAPONS } from '../../data/weapons'
+import { WEAPONS, BASE_WEAPON_IDS } from '../../data/weapons'
 import { PASSIVES } from '../../data/passives'
 import { RARITY } from '../../data/palette'
 import { recomputeStats } from './stats'
@@ -19,6 +19,21 @@ interface Weighted {
 export function generateChoices(world: World): Choice[] {
   const p = world.player
   const pool: Weighted[] = []
+
+  // evolutions (weapon maxed + its paired passive owned) — near-guaranteed pick
+  for (const w of p.weapons) {
+    if (w.evolved) continue
+    const def = WEAPONS[w.defId]
+    if (
+      w.level >= def.levels.length &&
+      def.evolveInto &&
+      def.evolveWith &&
+      p.passives.some((pi) => pi.defId === def.evolveWith && pi.level >= 1)
+    ) {
+      const evo = WEAPONS[def.evolveInto]
+      pool.push({ weight: 1000, choice: { kind: 'evolve', id: w.defId, name: evo.name, desc: `EVOLUTION! ${evo.desc}`, rarity: 'evolved', toLevel: 1 } })
+    }
+  }
 
   // upgrade owned weapons
   for (const w of p.weapons) {
@@ -40,9 +55,9 @@ export function generateChoices(world: World): Choice[] {
       })
     }
   }
-  // new weapons
+  // new weapons (base only — evolved weapons are never offered as fresh picks)
   if (p.weapons.length < MAX_WEAPONS) {
-    for (const id in WEAPONS) {
+    for (const id of BASE_WEAPON_IDS) {
       if (!p.weapons.some((w) => w.defId === id)) {
         const def = WEAPONS[id]
         pool.push({ weight: 35, choice: { kind: 'newWeapon', id, name: def.name, desc: def.desc, rarity: 'rare', toLevel: 1 } })
@@ -112,6 +127,17 @@ export function applyChoice(world: World, c: Choice): void {
     case 'newPassive':
       if (!p.passives.some((x) => x.defId === c.id)) p.passives.push({ defId: c.id, level: 1 })
       break
+    case 'evolve': {
+      const w = p.weapons.find((x) => x.defId === c.id)
+      const into = WEAPONS[c.id].evolveInto
+      if (w && into) {
+        w.defId = into
+        w.level = 1
+        w.evolved = true
+        w.cooldownTimer = 0
+      }
+      break
+    }
     case 'fallback':
       if (c.id === 'heal') p.hp = Math.min(p.maxHp, p.hp + p.maxHp * 0.35)
       else if (c.id === 'gold') world.run.gold += 60

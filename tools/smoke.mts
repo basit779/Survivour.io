@@ -75,8 +75,22 @@ for (let t = 0; t < TICKS; t++) {
   }
 }
 
+// --- evolution path: maxed weapon + paired passive should offer & apply EVO ---
+world.player.weapons = [{ defId: 'shard', level: 5, cooldownTimer: 0, evolved: false }]
+world.player.passives = [{ defId: 'multishot', level: 1 }]
+let evoCard
+for (let t = 0; t < 12 && !evoCard; t++) {
+  evoCard = generateChoices(world).find((c) => c.kind === 'evolve')
+}
+let evolved = false
+if (evoCard) {
+  applyChoice(world, evoCard)
+  evolved = world.player.weapons[0].defId === 'shard_storm' && world.player.weapons[0].evolved
+}
+
 const p = world.player
 console.log('=== Survivor Zero — headless smoke ===')
+console.log(`evolution:       ${evolved ? 'shard + multishot -> shard_storm OK' : 'FAILED'}`)
 console.log(`ticks:           ${TICKS} (${SECONDS}s)`)
 console.log(`kills:           ${world.run.kills}`)
 console.log(`player level:    ${p.level}`)
@@ -89,6 +103,6 @@ console.log(`peak projectiles:${peakProjectiles}`)
 console.log(`live gems:       ${world.gems.count}`)
 console.log(`player pos:      (${p.x.toFixed(1)}, ${p.y.toFixed(1)})`)
 
-const ok = !nanHit && world.run.kills > 0 && peakEnemies > 0 && p.level > 1
+const ok = !nanHit && world.run.kills > 0 && peakEnemies > 0 && p.level > 1 && evolved
 console.log(ok ? '\nPASS ✅' : '\nFAIL ❌')
 process.exit(ok ? 0 : 1)

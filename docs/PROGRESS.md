@@ -60,14 +60,18 @@ states).
 - **Persistence** (`SaveManager`, localStorage): banks gold + tracks best
   time/kills/runs across sessions.
 
+### Built in session 2e (weapon evolutions)
+- The signature mechanic: weapon at Lv5 + its paired passive owned → a near-
+  guaranteed **EVOLUTION** card that fuses it into an end-tier evolved weapon.
+- 6 evolutions: Shard Storm, Devastator, Drone Swarm, Singularity, Event
+  Horizon, Tempest. Evolved weapons never appear as fresh picks / can't re-evolve.
+
 ### 🔜 Next (resume here) — continue the milestone ladder
-1. **Weapon evolutions** (rest of step 6): evolution recipes (weapon Lv5 + paired
-   passive → evolved weapon), a couple more weapons toward the 10-weapon roster.
-2. **Juice + audio** (steps 9–10): synthesized SFX/music, hitstop, more particle
+1. **Juice + audio** (steps 9–10): synthesized SFX/music, hitstop, more particle
    polish, screen-shake tuning — the "premium feel" pass.
-3. **Full meta shop + characters** (rest of step 8): spend banked gold on permanent
+2. **Full meta shop + characters** (rest of step 8): spend banked gold on permanent
    upgrades; selectable operators.
-4. Then ship hardening (step 11): Capacitor native wrap, icons/splash, store builds.
+3. Then ship hardening (step 11): Capacitor native wrap, icons/splash, store builds.
 
 **Original foundation (session 1) below.**
 

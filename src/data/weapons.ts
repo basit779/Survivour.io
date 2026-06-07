@@ -19,6 +19,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
     ttl: 1.4,
     projRadius: 6,
     color: PAL.projectile,
+    evolveWith: 'multishot',
+    evolveInto: 'shard_storm',
     levels: [
       { damage: 12, cooldown: 0.9, count: 1, speed: 520, pierce: 0, area: 0, knockback: 60, duration: 0 },
       { damage: 15, cooldown: 0.82, count: 1, speed: 540, pierce: 0, area: 0, knockback: 60, duration: 0 },
@@ -39,6 +41,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
     ttl: 0.55,
     projRadius: 5,
     color: '#ffb3c1',
+    evolveWith: 'power',
+    evolveInto: 'devastator',
     levels: [
       { damage: 7, cooldown: 1.1, count: 4, speed: 560, pierce: 0, area: 0, knockback: 50, duration: 0 },
       { damage: 8, cooldown: 1.05, count: 5, speed: 570, pierce: 0, area: 0, knockback: 50, duration: 0 },
@@ -60,6 +64,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
     ttl: 2.2,
     projRadius: 6,
     color: '#9bff8f',
+    evolveWith: 'haste',
+    evolveInto: 'swarm_drones',
     levels: [
       { damage: 14, cooldown: 1.3, count: 1, speed: 360, pierce: 0, area: 0, knockback: 40, duration: 0 },
       { damage: 17, cooldown: 1.2, count: 1, speed: 380, pierce: 0, area: 0, knockback: 40, duration: 0 },
@@ -80,6 +86,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
     ttl: 0,
     projRadius: 0,
     color: PAL.aura,
+    evolveWith: 'bigarea',
+    evolveInto: 'singularity',
     levels: [
       { damage: 8, cooldown: 0.55, count: 0, speed: 0, pierce: 0, area: 70, knockback: 40, duration: 0 },
       { damage: 10, cooldown: 0.52, count: 0, speed: 0, pierce: 0, area: 82, knockback: 45, duration: 0 },
@@ -100,6 +108,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
     ttl: 0,
     projRadius: 9,
     color: '#7afcff',
+    evolveWith: 'power',
+    evolveInto: 'event_horizon',
     // count = blades, area = orbit radius, speed = angular (×0.01 rad/s), ttl = lifetime
     levels: [
       { damage: 12, cooldown: 3.2, count: 2, speed: 220, pierce: 9999, area: 64, knockback: 50, duration: 0, },
@@ -121,6 +131,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
     ttl: 0,
     projRadius: 0,
     color: '#bdb2ff',
+    evolveWith: 'scope',
+    evolveInto: 'tempest',
     // count = targets struck, area = visual radius
     levels: [
       { damage: 18, cooldown: 1.2, count: 1, speed: 0, pierce: 0, area: 18, knockback: 30, duration: 0 },
@@ -130,9 +142,49 @@ export const WEAPONS: Record<string, WeaponDef> = {
       { damage: 42, cooldown: 0.85, count: 4, speed: 0, pierce: 0, area: 24, knockback: 45, duration: 0 },
     ],
   },
+
+  // ---- Evolved weapons (single-tier, end-game power spikes) ----
+  shard_storm: {
+    id: 'shard_storm', name: 'Shard Storm', desc: 'A relentless storm of piercing shards.',
+    pattern: 'projectile', targeting: 'nearest', acceptsBonus: true, isEvolved: true,
+    ttl: 1.6, projRadius: 7, color: '#fff3a0',
+    levels: [{ damage: 44, cooldown: 0.4, count: 6, speed: 720, pierce: 4, area: 0, knockback: 110, duration: 0 }],
+  },
+  devastator: {
+    id: 'devastator', name: 'Devastator', desc: 'A devastating wall of shot.',
+    pattern: 'projectile', targeting: 'nearest', acceptsBonus: true, isEvolved: true,
+    ttl: 0.6, projRadius: 6, color: '#ff7d9c',
+    levels: [{ damage: 26, cooldown: 0.7, count: 14, speed: 700, pierce: 3, area: 0, knockback: 90, duration: 0 }],
+  },
+  swarm_drones: {
+    id: 'swarm_drones', name: 'Drone Swarm', desc: 'A swarm of relentless homing drones.',
+    pattern: 'projectile', targeting: 'nearest', acceptsBonus: true, homing: true, isEvolved: true,
+    ttl: 2.6, projRadius: 7, color: '#c6ff8f',
+    levels: [{ damage: 34, cooldown: 0.5, count: 6, speed: 480, pierce: 1, area: 0, knockback: 70, duration: 0 }],
+  },
+  singularity: {
+    id: 'singularity', name: 'Singularity', desc: 'A massive crushing field.',
+    pattern: 'aura', targeting: 'self', acceptsBonus: false, isEvolved: true,
+    ttl: 0, projRadius: 0, color: PAL.aura,
+    levels: [{ damage: 36, cooldown: 0.34, count: 0, speed: 0, pierce: 0, area: 180, knockback: 100, duration: 0 }],
+  },
+  event_horizon: {
+    id: 'event_horizon', name: 'Event Horizon', desc: 'A ring of unstoppable blades.',
+    pattern: 'orbit', targeting: 'self', acceptsBonus: false, isEvolved: true,
+    ttl: 0, projRadius: 11, color: '#a6fcff',
+    levels: [{ damage: 44, cooldown: 2.4, count: 7, speed: 320, pierce: 9999, area: 108, knockback: 90, duration: 0 }],
+  },
+  tempest: {
+    id: 'tempest', name: 'Tempest', desc: 'A storm of chained lightning.',
+    pattern: 'strike', targeting: 'nearest', acceptsBonus: false, isEvolved: true,
+    ttl: 0, projRadius: 0, color: '#d6c9ff',
+    levels: [{ damage: 64, cooldown: 0.6, count: 6, speed: 0, pierce: 0, area: 26, knockback: 50, duration: 0 }],
+  },
 }
 
 export const WEAPON_IDS = Object.keys(WEAPONS)
+/** Base (non-evolved) weapons — the only ones offered as fresh picks. */
+export const BASE_WEAPON_IDS = WEAPON_IDS.filter((id) => !WEAPONS[id].isEvolved)
 
 export function weaponLevel(def: WeaponDef, level: number) {
   return def.levels[Math.min(level, def.levels.length) - 1]

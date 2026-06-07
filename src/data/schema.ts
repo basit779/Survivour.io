@@ -52,6 +52,8 @@ export interface WeaponDef {
   evolveWith?: string
   /** Id of the evolved weapon it becomes. */
   evolveInto?: string
+  /** Evolved weapons are end-tier: not offered as new picks, can't re-evolve. */
+  isEvolved?: boolean
 }
 
 /** A weapon the player currently owns. */
