@@ -109,8 +109,10 @@ Follow the **Implementation Order** in [MASTER_PLAN.md](MASTER_PLAN.md). The fou
 - **Roster authority:** the weapon-system spec's 10 weapons / 12 passives / 10 evolutions is canonical.
 - **Name:** "Survivor Zero" (repo is `Survivour.io`; game title can be rebranded for marketing).
 
-## Open product decision (needs your call later)
-- **Monetization:** ship **paid** (all F2P hooks off) or **free-to-play** (energy/ads/double-gold on)? Affects whether Power Cells/ads UI gets built. Defaulting to **paid/premium** until you say otherwise.
+## Product decisions
+- **Monetization: FREE-TO-PLAY** (decided 2026-06-07). Build F2P hooks into the
+  meta/shop step: rewarded-ad double-gold, optional energy/Power Cells, revive,
+  cosmetics — kept optional/ethical. (Paid mode can stay a config flag.)
 
 ## How to run what exists
 ```bash
