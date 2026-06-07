@@ -66,12 +66,22 @@ states).
 - 6 evolutions: Shard Storm, Devastator, Drone Swarm, Singularity, Event
   Horizon, Tempest. Evolved weapons never appear as fresh picks / can't re-evolve.
 
+### Built in session 2f (synthesized audio)
+- WebAudio engine (zero files): gesture-unlock, voice cap + per-sound rate limit,
+  mute (M), suspend/resume on backgrounding.
+- SFX: shoot, hit, crit, enemy die, explosion, pickup, level-up, player hurt,
+  boss spawn/die, UI tap — wired across weapons/combat/progression/enemies/scenes.
+- Procedural music loop (lookahead sequencer, ~124 BPM A-minor).
+
+### Known feel notes (deferred, per user)
+- **Movement smoothness** can be improved — revisit in a dedicated feel pass
+  (camera lerp/lookahead tuning, optional analog joystick, dir smoothing).
+
 ### 🔜 Next (resume here) — continue the milestone ladder
-1. **Juice + audio** (steps 9–10): synthesized SFX/music, hitstop, more particle
-   polish, screen-shake tuning — the "premium feel" pass.
-2. **Full meta shop + characters** (rest of step 8): spend banked gold on permanent
-   upgrades; selectable operators.
-3. Then ship hardening (step 11): Capacitor native wrap, icons/splash, store builds.
+1. **Free-to-play meta shop + characters**: spend banked gold on permanent
+   upgrades; selectable operators; rewarded-ad double-gold hook.
+2. **Feel pass**: movement smoothness, hitstop, screen-shake tuning, more particles.
+3. **Ship hardening** (step 11): Capacitor native wrap, icons/splash, store builds.
 
 **Original foundation (session 1) below.**
 

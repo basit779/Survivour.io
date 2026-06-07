@@ -2,6 +2,7 @@
 // + suicide rush + boss volleys), and the wave/boss spawn director.
 import { clamp, TAU } from '../../engine/math'
 import { C, hpScale, dmgScale, speedScale, targetEnemyCount } from '../../data/balance'
+import { sfx } from '../../engine/audio/Sfx'
 import type { World } from '../World'
 
 /** Rebuild the broad-phase grid from current enemy positions (active indices). */
@@ -159,6 +160,7 @@ function spawnBoss(world: World, minutes: number): void {
   const boss = world.spawnEnemy('boss_warden', x, y, hpScale(minutes, 0) * 0.6, dmgScale(minutes), 1)
   world.boss = boss
   world.camera.addTrauma(0.7)
+  sfx.bossSpawn()
 }
 
 function pickEnemy(world: World, minutes: number): string {

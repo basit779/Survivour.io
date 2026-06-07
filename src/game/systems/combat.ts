@@ -5,6 +5,7 @@ import { C } from '../../data/balance'
 import { PAL } from '../../data/palette'
 import { angleDelta, clamp } from '../../engine/math'
 import { findNearest } from './target'
+import { sfx } from '../../engine/audio/Sfx'
 import type { World } from '../World'
 import type { Enemy } from '../entities'
 
@@ -143,7 +144,12 @@ export function damageEnemy(
   e.x += (dirX / l) * kb
   e.y += (dirY / l) * kb
   world.spawnDamageNumber(e.x, e.y - e.radius, Math.round(amount).toString(), crit ? PAL.dmgCrit : PAL.dmg, crit)
-  if (crit) world.camera.addTrauma(0.05)
+  if (crit) {
+    world.camera.addTrauma(0.05)
+    sfx.crit()
+  } else {
+    sfx.hit()
+  }
 }
 
 export function damagePlayer(world: World, amount: number): void {
@@ -153,6 +159,7 @@ export function damagePlayer(world: World, amount: number): void {
   p.iframe = C.IFRAME
   p.hurtFlash = 0.18
   world.camera.addTrauma(0.32)
+  sfx.hurt()
   if (p.hp <= 0) {
     p.hp = 0
     world.run.state = 'dead'
@@ -174,6 +181,7 @@ export function updateDeaths(world: World): void {
       const rr = e.explodeRadius + p.radius
       if (dx * dx + dy * dy <= rr * rr) damagePlayer(world, e.explodeDamage)
       world.camera.addTrauma(0.18)
+      sfx.explode()
       for (let k = 0; k < 18; k++) {
         const a = world.rng.range(0, Math.PI * 2)
         const sp = world.rng.range(90, 240)
@@ -198,9 +206,11 @@ export function updateDeaths(world: World): void {
       world.spawnGem(e.x, e.y, Math.round(p.maxHp * 0.3), 'health')
       world.camera.addTrauma(0.6)
       world.boss = null
+      sfx.bossDie()
     } else {
       world.spawnGem(e.x, e.y, e.xp, 'xp')
       if (world.rng.next() < 0.12) world.spawnGem(e.x, e.y, e.gold, 'gold')
+      if (e.behavior !== 'suicide') sfx.enemyDie()
     }
 
     const n = e.radius > 16 ? 12 : 6

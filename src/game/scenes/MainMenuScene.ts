@@ -5,6 +5,7 @@ import type { AppCtx } from '../AppCtx'
 import { Time } from '../../engine/Time'
 import { PAL } from '../../data/palette'
 import { RunScene } from './RunScene'
+import { sfx } from '../../engine/audio/Sfx'
 
 export class MainMenuScene implements Scene {
   constructor(private ctx: AppCtx) {}
@@ -78,6 +79,7 @@ export class MainMenuScene implements Scene {
   }
 
   private play(): void {
+    sfx.uiTap()
     this.ctx.engine.timeScale = 1
     this.ctx.scenes.replaceAll(new RunScene(this.ctx))
   }

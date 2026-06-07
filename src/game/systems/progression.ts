@@ -4,6 +4,7 @@
 import { C } from '../../data/balance'
 import { PAL } from '../../data/palette'
 import { xpToNext } from '../../data/levelCurve'
+import { sfx } from '../../engine/audio/Sfx'
 import type { World } from '../World'
 import type { Gem } from '../entities'
 
@@ -25,6 +26,7 @@ export function updatePickups(world: World, dt: number): void {
     }
     if (d2 <= hard2) {
       collect(world, g)
+      sfx.pickup()
       g.alive = false
     }
   }
@@ -54,6 +56,7 @@ function onLevelUp(world: World): void {
   // Queue an upgrade choice; RunScene pushes the LevelUpScene overlay.
   world.run.pendingLevels++
   world.camera.addTrauma(0.14)
+  sfx.levelUp()
   for (let k = 0; k < 22; k++) {
     const a = (k / 22) * Math.PI * 2
     world.spawnParticle(p.x, p.y, Math.cos(a) * 170, Math.sin(a) * 170, 0.5, 3, PAL.uiAccent)

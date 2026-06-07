@@ -5,6 +5,8 @@ import { Engine } from './engine/Engine'
 import { SceneManager } from './engine/SceneManager'
 import { InputManager } from './input/InputManager'
 import { SaveManager } from './save/SaveManager'
+import { audio } from './engine/audio/AudioEngine'
+import { music } from './engine/audio/Music'
 import { MainMenuScene } from './game/scenes/MainMenuScene'
 import type { AppCtx } from './game/AppCtx'
 
@@ -24,7 +26,28 @@ scenes.push(new MainMenuScene(ctx))
 if (loading) loading.style.display = 'none'
 engine.start()
 
-// Pause the active run when the app/tab is backgrounded (mobile lifecycle).
+// Unlock + start audio on the first user gesture (mobile autoplay policy).
+function unlockAudio(): void {
+  audio.init()
+  audio.resume()
+  music.start()
+  window.removeEventListener('pointerdown', unlockAudio)
+  window.removeEventListener('keydown', unlockAudio)
+}
+window.addEventListener('pointerdown', unlockAudio)
+window.addEventListener('keydown', unlockAudio)
+
+// 'M' toggles mute.
+window.addEventListener('keydown', (e) => {
+  if (e.key.toLowerCase() === 'm') audio.toggleMute()
+})
+
+// Pause + suspend audio when the app/tab is backgrounded; resume on return.
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) engine.timeScale = 0
+  if (document.hidden) {
+    engine.timeScale = 0
+    audio.suspend()
+  } else {
+    audio.resume()
+  }
 })

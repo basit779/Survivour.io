@@ -9,6 +9,7 @@ import type { Choice } from '../../data/schema'
 import { PAL, RARITY } from '../../data/palette'
 import type { RarityKey } from '../../data/palette'
 import { generateChoices, applyChoice } from '../systems/upgrades'
+import { sfx } from '../../engine/audio/Sfx'
 
 interface Rect {
   x: number
@@ -77,6 +78,7 @@ export class LevelUpScene implements Scene {
   }
 
   private select(i: number): void {
+    sfx.uiTap()
     applyChoice(this.world, this.choices[i])
     this.world.run.pendingLevels = Math.max(0, this.world.run.pendingLevels - 1)
     this.ctx.scenes.pop()

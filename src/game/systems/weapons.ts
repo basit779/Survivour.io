@@ -7,6 +7,7 @@ import { TAU } from '../../engine/math'
 import { WEAPONS, weaponLevel } from '../../data/weapons'
 import { damageEnemy } from './combat'
 import { findNearest, findNearestN } from './target'
+import { sfx } from '../../engine/audio/Sfx'
 import type { World } from '../World'
 import type { WeaponDef, WeaponLevel } from '../../data/schema'
 import type { Player, Enemy } from '../entities'
@@ -35,6 +36,7 @@ function rollDamage(world: World, base: number, p: Player): { dmg: number; crit:
 }
 
 function fire(world: World, def: WeaponDef, lv: WeaponLevel, p: Player): void {
+  sfx.shoot()
   switch (def.pattern) {
     case 'projectile':
       fireProjectile(world, def, lv, p)

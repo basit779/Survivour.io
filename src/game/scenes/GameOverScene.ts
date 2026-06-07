@@ -7,6 +7,7 @@ import type { World } from '../World'
 import type { RunScene } from './RunScene'
 import { MainMenuScene } from './MainMenuScene'
 import { PAL } from '../../data/palette'
+import { sfx } from '../../engine/audio/Sfx'
 
 interface Rect {
   x: number
@@ -71,11 +72,13 @@ export class GameOverScene implements Scene {
   }
 
   private doRetry(): void {
+    sfx.uiTap()
     this.ctx.scenes.pop()
     this.run.restart()
   }
 
   private doMenu(): void {
+    sfx.uiTap()
     this.ctx.scenes.replaceAll(new MainMenuScene(this.ctx))
   }
 
