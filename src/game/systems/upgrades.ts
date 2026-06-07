@@ -5,6 +5,7 @@ import { WEAPONS, BASE_WEAPON_IDS } from '../../data/weapons'
 import { PASSIVES } from '../../data/passives'
 import { RARITY } from '../../data/palette'
 import { recomputeStats } from './stats'
+import { sfx } from '../../engine/audio/Sfx'
 import type { World } from '../World'
 import type { Choice } from '../../data/schema'
 
@@ -135,6 +136,11 @@ export function applyChoice(world: World, c: Choice): void {
         w.level = 1
         w.evolved = true
         w.cooldownTimer = 0
+        // golden "evolution!" moment — celebratory shockwave + shake + sting
+        world.spawnRing(p.x, p.y, 240, '#ffd24a', 0.6)
+        world.spawnRing(p.x, p.y, 150, '#ffffff', 0.45)
+        world.camera.addTrauma(0.5)
+        sfx.levelUp()
       }
       break
     }

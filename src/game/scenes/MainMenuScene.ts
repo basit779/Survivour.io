@@ -113,7 +113,7 @@ export class MainMenuScene implements Scene {
     g.globalAlpha = pulse
     button(g, this.playBtn, 'PLAY', PAL.uiGood)
     g.globalAlpha = 1
-    button(g, this.shopBtn, 'UPGRADES', PAL.uiAccent)
+    button(g, this.shopBtn, 'GEAR', PAL.uiAccent)
     button(g, this.heroBtn, 'HEROES', PAL.uiGold)
   }
 }

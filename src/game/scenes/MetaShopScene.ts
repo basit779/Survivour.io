@@ -4,10 +4,10 @@ import type { Scene } from '../../engine/Scene'
 import type { Renderer } from '../../engine/Renderer'
 import type { AppCtx } from '../AppCtx'
 import { MainMenuScene } from './MainMenuScene'
-import { META_UPGRADES, metaCost } from '../../data/meta'
+import { META_UPGRADES, metaCost, gearTier } from '../../data/meta'
 import { PAL } from '../../data/palette'
 import { sfx } from '../../engine/audio/Sfx'
-import { Rect, hit, panel, button, text } from '../ui/widgets'
+import { Rect, hit, button, text, rrect } from '../ui/widgets'
 
 export class MetaShopScene implements Scene {
   private rows: Rect[] = []
@@ -77,7 +77,7 @@ export class MetaShopScene implements Scene {
     r.beginScreen()
 
     button(g, this.back, '‹ BACK', PAL.uiAccent)
-    text(g, 'UPGRADES', W / 2, 32, 26, PAL.uiAccent, 800, 'center', true)
+    text(g, 'GEAR', W / 2, 32, 26, PAL.uiAccent, 800, 'center', true)
     text(g, `◆ ${this.ctx.save.data.totalGold}`, W / 2, 70, 16, PAL.gold, 700, 'center', true)
 
     for (let i = 0; i < META_UPGRADES.length; i++) {
@@ -87,12 +87,33 @@ export class MetaShopScene implements Scene {
       const maxed = rank >= def.maxRank
       const cost = metaCost(def, rank)
       const afford = this.ctx.save.data.totalGold >= cost
-      panel(g, rc, maxed ? PAL.uiDim : afford ? PAL.uiAccent : PAL.uiWarn)
-      text(g, def.name, rc.x + 16, rc.y + 20, 17, PAL.uiText, 800)
-      text(g, def.desc, rc.x + 16, rc.y + 42, 13, PAL.uiDim, 500)
-      // rank pips
-      text(g, `${rank}/${def.maxRank}`, rc.x + rc.w - 70, rc.y + 20, 14, PAL.uiText, 700, 'right')
-      text(g, maxed ? 'MAX' : `◆ ${cost}`, rc.x + rc.w - 16, rc.y + 42, 14, maxed ? PAL.uiDim : afford ? PAL.gold : PAL.uiWarn, 700, 'right')
+      const tier = gearTier(rank)
+
+      // card
+      g.fillStyle = 'rgba(0,0,0,0.4)'
+      rrect(g, rc.x + 2, rc.y + 4, rc.w, rc.h, 12); g.fill()
+      g.fillStyle = PAL.uiPanel
+      rrect(g, rc.x, rc.y, rc.w, rc.h, 12); g.fill()
+      g.lineWidth = 3
+      g.strokeStyle = tier.color
+      rrect(g, rc.x, rc.y, rc.w, rc.h, 12); g.stroke()
+
+      // rarity-tinted icon tile with the slot initial
+      const s = rc.h - 16
+      const ix = rc.x + 8
+      const iy = rc.y + 8
+      g.fillStyle = PAL.uiPanelLight
+      rrect(g, ix, iy, s, s, 9); g.fill()
+      g.lineWidth = 2.5; g.strokeStyle = tier.color
+      rrect(g, ix, iy, s, s, 9); g.stroke()
+      text(g, def.name.slice(0, 1), ix + s / 2, iy + s / 2, 22, tier.color, 900, 'center', true)
+
+      const tx = ix + s + 14
+      text(g, def.name, tx, rc.y + 20, 17, '#ffffff', 800)
+      text(g, def.desc, tx, rc.y + 42, 12.5, PAL.uiDim, 500)
+      // tier label + cost (right side)
+      text(g, maxed ? 'MAX TIER' : `${tier.name} · ${rank}/${def.maxRank}`, rc.x + rc.w - 14, rc.y + 20, 13, tier.color, 800, 'right')
+      text(g, maxed ? '★' : `◆ ${cost}`, rc.x + rc.w - 14, rc.y + 44, 15, maxed ? PAL.uiGold : afford ? PAL.gold : PAL.uiWarn, 800, 'right')
     }
   }
 }

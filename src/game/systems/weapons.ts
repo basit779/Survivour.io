@@ -51,9 +51,37 @@ function fire(world: World, def: WeaponDef, lv: WeaponLevel, p: Player): void {
     case 'strike':
       fireStrike(world, lv, p)
       break
+    case 'area':
+      fireArea(world, lv, p)
+      break
     default:
       fireProjectile(world, def, lv, p)
   }
+}
+
+// Lobbed explosives: detonate big AOE blasts on the densest nearby clusters.
+function fireArea(world: World, lv: WeaponLevel, p: Player): void {
+  findNearestN(world, p.x, p.y, TARGET_RANGE, Math.max(1, lv.count), strikeTargets)
+  if (strikeTargets.length === 0) return
+  const radius = lv.area * p.areaMult
+  const r2 = radius * radius
+  const en = world.enemies
+  for (let i = 0; i < strikeTargets.length; i++) {
+    const ex = strikeTargets[i].x
+    const ey = strikeTargets[i].y
+    world.grid.query(ex, ey, radius, (id) => {
+      const e = en.items[id]
+      if (!e || !e.alive || e.hp <= 0) return
+      const dx = e.x - ex
+      const dy = e.y - ey
+      if (dx * dx + dy * dy <= r2 + e.radius * e.radius) {
+        const { dmg, crit } = rollDamage(world, lv.damage, p)
+        damageEnemy(world, e, dmg, crit, dx, dy, lv.knockback)
+      }
+    })
+    world.spawnRing(ex, ey, radius, PAL.aoeFire, 0.4)
+  }
+  world.camera.addTrauma(0.08)
 }
 
 function fireProjectile(world: World, def: WeaponDef, lv: WeaponLevel, p: Player): void {

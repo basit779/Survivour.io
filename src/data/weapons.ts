@@ -143,7 +143,36 @@ export const WEAPONS: Record<string, WeaponDef> = {
     ],
   },
 
+  // Lobbed firebomb: detonates AOE blasts in the densest crowds (crowd-clear).
+  molotov: {
+    id: 'molotov',
+    name: 'Firebomb',
+    desc: 'Lobs explosives into the densest crowds.',
+    pattern: 'area',
+    targeting: 'nearest',
+    acceptsBonus: false,
+    ttl: 0,
+    projRadius: 0,
+    color: '#ff7a18',
+    evolveWith: 'coolant',
+    evolveInto: 'inferno',
+    // count = blast points, area = blast radius
+    levels: [
+      { damage: 16, cooldown: 1.6, count: 1, speed: 0, pierce: 0, area: 80, knockback: 60, duration: 0 },
+      { damage: 20, cooldown: 1.5, count: 1, speed: 0, pierce: 0, area: 92, knockback: 65, duration: 0 },
+      { damage: 26, cooldown: 1.4, count: 2, speed: 0, pierce: 0, area: 104, knockback: 70, duration: 0 },
+      { damage: 33, cooldown: 1.3, count: 2, speed: 0, pierce: 0, area: 118, knockback: 80, duration: 0 },
+      { damage: 44, cooldown: 1.15, count: 3, speed: 0, pierce: 0, area: 135, knockback: 90, duration: 0 },
+    ],
+  },
+
   // ---- Evolved weapons (single-tier, end-game power spikes) ----
+  inferno: {
+    id: 'inferno', name: 'Inferno', desc: 'Blankets the field in roaring fire.',
+    pattern: 'area', targeting: 'nearest', acceptsBonus: false, isEvolved: true,
+    ttl: 0, projRadius: 0, color: '#ff5a1a',
+    levels: [{ damage: 60, cooldown: 0.8, count: 4, speed: 0, pierce: 0, area: 160, knockback: 100, duration: 0 }],
+  },
   shard_storm: {
     id: 'shard_storm', name: 'Shard Storm', desc: 'A relentless storm of piercing shards.',
     pattern: 'projectile', targeting: 'nearest', acceptsBonus: true, isEvolved: true,

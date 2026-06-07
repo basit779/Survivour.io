@@ -37,9 +37,18 @@ big spawn batches so it actually stays a wall (peak 20→120 enemies in the 60s 
 late-game speed scaling capped at 1.1x so zombies never out-pace you. Verified via
 screenshots (dense kited horde) + smoke (3390 kills/60s, player survives).
 
-**Known next (feel/content, deferred):** rework upgrades/skill choices to match
-Survivor.io; punchier weapon projectile VFX; evolution golden-chest moment; biome
-variety (dirt/urban/lab grounds).
+**Upgrade overhaul (session 3c):** toward the full Survivor.io upgrade feel —
+- New **'area' weapon pattern** + **Firebomb (Molotov)** that detonates big AOE
+  blasts on the densest crowds, evolving into **Inferno** (crowd-clear variety).
+- Meta shop reworked into a **GEAR system**: 6 equipment slots (Weapon/Gloves/
+  Necklace/Body Armor/Belt/Boots) each on a 6-tier rarity ladder (Empty→Green→
+  Blue→Purple→Gold→Red) bought with gold; rarity-tinted cards. Old stat-shop ids
+  retired (old save ranks harmlessly ignored by aggregateMetaStats).
+- **Evolution moment**: evolving fires a golden shockwave + screen shake + sting.
+
+**Known next (feel/content, deferred):** more base weapons (laser/beam, boomerang,
+brick); real golden-chest scene on boss kill; punchier projectile trails; biome
+variety (dirt/urban/lab grounds); energy/F2P daily loop.
 
 ## Where we are
 
