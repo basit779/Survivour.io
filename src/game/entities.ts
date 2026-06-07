@@ -65,6 +65,19 @@ export class Enemy {
   glow = '#fff'
   shape: EnemyShape = 'circle'
   hitFlash = 0
+  // behavior params (filled from EnemyDef.special at spawn)
+  fireTimer = 0
+  fireCooldown = 0
+  shotDamage = 0
+  shotSpeed = 0
+  preferRange = 0
+  explodeRadius = 0
+  explodeDamage = 0
+  explodeRange = 0
+  splitInto = 0
+  childId = ''
+  burst = 0
+  isBoss = false
 }
 
 export class Projectile {
@@ -82,6 +95,8 @@ export class Projectile {
   knockback = 0
   crit = false
   color = '#fff'
+  /** Hostile projectiles (from enemies) damage the player instead of enemies. */
+  hostile = false
   /** Enemies already hit (pierce dedup); reused, cleared on spawn. */
   hitList: Enemy[] = []
   // Movement modes for non-linear weapons.

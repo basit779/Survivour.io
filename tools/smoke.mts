@@ -19,6 +19,13 @@ world.player.maxHp = 1_000_000
 world.player.hp = 1_000_000
 // Equip every weapon so all fire patterns (projectile/homing/aura/orbit/strike) run.
 world.player.weapons = WEAPON_IDS.map((id) => ({ defId: id, level: 3, cooldownTimer: 0, evolved: false }))
+// Seed every special enemy behavior so their AI branches are exercised.
+world.spawnEnemy('spitter', world.player.x + 200, world.player.y, 1)
+world.spawnEnemy('bomber', world.player.x - 180, world.player.y, 1)
+world.spawnEnemy('splitter', world.player.x, world.player.y + 200, 1)
+world.spawnEnemy('elite_brute', world.player.x, world.player.y - 220, 1)
+const testBoss = world.spawnEnemy('boss_warden', world.player.x + 260, world.player.y + 120, 1)
+world.boss = testBoss
 
 const input = { moveX: 0, moveY: 0, moveMag: 1, pointerDown: false }
 
@@ -40,7 +47,7 @@ for (let t = 0; t < TICKS; t++) {
   updatePlayerControl(w, input, C.FIXED_DT)
   updateSpawnDirector(w, C.FIXED_DT)
   buildEnemyGrid(w)
-  updateEnemyAI(w)
+  updateEnemyAI(w, C.FIXED_DT)
   updateWeapons(w, C.FIXED_DT)
   updateMovement(w, C.FIXED_DT)
   updateProjectiles(w, C.FIXED_DT)

@@ -42,6 +42,9 @@ world.reset()
 // Populate some of everything.
 for (let i = 0; i < 60; i++) world.spawnEnemy(i % 3 === 0 ? 'brute' : i % 3 === 1 ? 'runner' : 'swarmer', world.player.x + (i - 30) * 6, world.player.y + (i % 7) * 9, 1)
 for (let i = 0; i < 10; i++) world.spawnProjectile(world.player.x, world.player.y, 100, 50, 12, 1, 6, 1, 60, i % 2 === 0, '#ffe66d')
+for (let i = 0; i < 6; i++) world.spawnHostileShot(world.player.x + i * 12, world.player.y - 40, -20, 30, 8, 6, 3, '#ff5d73')
+const rsBoss = world.spawnEnemy('boss_warden', world.player.x + 120, world.player.y - 80, 1)
+world.boss = rsBoss
 for (let i = 0; i < 20; i++) world.spawnGem(world.player.x + i * 4, world.player.y, 1, 'xp')
 for (let i = 0; i < 30; i++) world.spawnParticle(world.player.x, world.player.y, i, -i, 0.5, 3, '#fff')
 world.spawnDamageNumber(world.player.x, world.player.y, '123', '#fff', true)

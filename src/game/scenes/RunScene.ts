@@ -40,7 +40,7 @@ export class RunScene implements Scene {
     updatePlayerControl(w, this.input, dt)
     updateSpawnDirector(w, dt)
     buildEnemyGrid(w)
-    updateEnemyAI(w)
+    updateEnemyAI(w, dt)
     updateWeapons(w, dt)
     updateMovement(w, dt)
     updateProjectiles(w, dt)

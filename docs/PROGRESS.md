@@ -43,15 +43,21 @@ states).
   crit/regen/cooldown/armor). Armor + regen wired into combat/player.
 - Tap + number-key selection input.
 
+### Built in session 2c (enemies + bosses)
+- Enemy roster of 9 with real behaviors: chase/fast/tank, **ranged** (kites +
+  fires hostile shots), **suicide** (rushes + detonates AoE), **split** (spawns
+  splitlings on death), an **elite** (Juggernaut), and a **boss** (The Warden:
+  seeks + radial volleys, boss HP bar).
+- Hostile projectiles (enemy shots) that damage the player.
+- Spawn director: time-phased enemy mix, periodic elites, scheduled bosses at
+  5/10/15 min, difficulty scaling (HP/damage/speed) applied at spawn.
+
 ### 🔜 Next (resume here) — continue the milestone ladder
-1. **Enemies + waves + bosses** (step 5): full roster, per-kind behaviors
-   (ranged/suicide/split), elites, the 5/10/15-min boss cadence, richer spawn
-   director + difficulty scaling, status effects.
-2. **Weapon evolutions** (rest of step 6): evolution recipes (weapon Lv5 + paired
+1. **Weapon evolutions** (rest of step 6): evolution recipes (weapon Lv5 + paired
    passive → evolved weapon), a couple more weapons toward the 10-weapon roster.
-3. **Meta + persistence** (step 8): currencies, permanent upgrade shop,
+2. **Meta + persistence** (step 8): currencies, permanent upgrade shop,
    characters, save system; main menu + game-over summary scenes.
-4. Then juice → audio → ship hardening (steps 9–11).
+3. Then juice → audio → ship hardening (steps 9–11).
 
 **Original foundation (session 1) below.**
 

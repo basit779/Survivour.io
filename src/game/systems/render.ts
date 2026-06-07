@@ -248,6 +248,29 @@ export function renderHud(world: World, r: Renderer, input: InputManager, paused
   g.fillStyle = PAL.gold
   g.fillText(`◆ ${run.gold}`, W - 12, SAFE_TOP + 30)
 
+  // boss HP bar (top center, when a boss is alive)
+  if (world.boss && world.boss.alive) {
+    const b = world.boss
+    const bw = W * 0.72
+    const bh = 10
+    const bx = (W - bw) / 2
+    const by = SAFE_TOP + 52
+    g.fillStyle = 'rgba(0,0,0,0.5)'
+    roundRect(g, bx - 2, by - 2, bw + 4, bh + 4, 5)
+    g.fill()
+    g.fillStyle = 'rgba(255,255,255,0.1)'
+    roundRect(g, bx, by, bw, bh, 4)
+    g.fill()
+    g.fillStyle = PAL.enemyBoss
+    roundRect(g, bx, by, bw * Math.max(0, b.hp / b.maxHp), bh, 4)
+    g.fill()
+    g.fillStyle = PAL.uiText
+    g.textAlign = 'center'
+    g.textBaseline = 'top'
+    g.font = '700 11px system-ui, sans-serif'
+    g.fillText('THE WARDEN', W / 2, by + bh + 3)
+  }
+
   // HP bar (bottom center)
   const barW = W * 0.56
   const barH = 16

@@ -81,7 +81,7 @@ export function updateCollisions(world: World): void {
   // projectile -> enemy
   for (let i = 0; i < pr.count; i++) {
     const q = pr.items[i]
-    if (!q.alive) continue
+    if (!q.alive || q.hostile) continue
     grid.query(q.x, q.y, q.radius + 36, (id) => {
       if (!q.alive) return
       const e = en.items[id]
@@ -111,6 +111,19 @@ export function updateCollisions(world: World): void {
       if (dx * dx + dy * dy <= rr * rr && e.contact > maxContact) maxContact = e.contact
     })
     if (maxContact > 0) damagePlayer(world, maxContact)
+  }
+
+  // hostile projectile -> player
+  for (let i = 0; i < pr.count; i++) {
+    const q = pr.items[i]
+    if (!q.alive || !q.hostile) continue
+    const dx = q.x - p.x
+    const dy = q.y - p.y
+    const rr = p.radius + q.radius
+    if (dx * dx + dy * dy <= rr * rr) {
+      damagePlayer(world, q.damage)
+      q.alive = false
+    }
   }
 }
 
@@ -148,21 +161,56 @@ export function damagePlayer(world: World, amount: number): void {
 
 export function updateDeaths(world: World): void {
   const en = world.enemies
+  const p = world.player
   for (let i = 0; i < en.count; i++) {
     const e = en.items[i]
-    if (e.hp <= 0 && e.alive) {
-      world.run.kills++
+    if (e.hp > 0 || !e.alive) continue
+    world.run.kills++
+
+    // suicide detonation: AoE damage + burst
+    if (e.behavior === 'suicide' && e.explodeRadius > 0) {
+      const dx = p.x - e.x
+      const dy = p.y - e.y
+      const rr = e.explodeRadius + p.radius
+      if (dx * dx + dy * dy <= rr * rr) damagePlayer(world, e.explodeDamage)
+      world.camera.addTrauma(0.18)
+      for (let k = 0; k < 18; k++) {
+        const a = world.rng.range(0, Math.PI * 2)
+        const sp = world.rng.range(90, 240)
+        world.spawnParticle(e.x, e.y, Math.cos(a) * sp, Math.sin(a) * sp, world.rng.range(0.25, 0.55), world.rng.range(2.5, 4.5), e.glow)
+      }
+    }
+
+    // splitter: spawn children
+    if (e.behavior === 'split' && e.splitInto > 0 && e.childId) {
+      for (let k = 0; k < e.splitInto; k++) {
+        const a = (k / e.splitInto) * Math.PI * 2
+        world.spawnEnemy(e.childId, e.x + Math.cos(a) * e.radius, e.y + Math.sin(a) * e.radius, 1)
+      }
+    }
+
+    // drops
+    if (e.isBoss) {
+      world.spawnGem(e.x, e.y, e.xp, 'xp')
+      for (let k = 0; k < 10; k++) {
+        world.spawnGem(e.x + world.rng.range(-30, 30), e.y + world.rng.range(-30, 30), Math.ceil(e.gold / 10), 'gold')
+      }
+      world.spawnGem(e.x, e.y, Math.round(p.maxHp * 0.3), 'health')
+      world.camera.addTrauma(0.6)
+      world.boss = null
+    } else {
       world.spawnGem(e.x, e.y, e.xp, 'xp')
       if (world.rng.next() < 0.12) world.spawnGem(e.x, e.y, e.gold, 'gold')
-      const n = e.radius > 16 ? 12 : 6
-      for (let k = 0; k < n; k++) {
-        const a = world.rng.range(0, Math.PI * 2)
-        const sp = world.rng.range(50, 160)
-        world.spawnParticle(e.x, e.y, Math.cos(a) * sp, Math.sin(a) * sp, world.rng.range(0.22, 0.5), world.rng.range(2, 4), e.glow)
-      }
-      if (e.radius > 16) world.camera.addTrauma(0.12)
-      e.alive = false
     }
+
+    const n = e.radius > 16 ? 12 : 6
+    for (let k = 0; k < n; k++) {
+      const a = world.rng.range(0, Math.PI * 2)
+      const sp = world.rng.range(50, 160)
+      world.spawnParticle(e.x, e.y, Math.cos(a) * sp, Math.sin(a) * sp, world.rng.range(0.22, 0.5), world.rng.range(2, 4), e.glow)
+    }
+    if (e.radius > 16) world.camera.addTrauma(0.12)
+    e.alive = false
   }
   en.sweep()
 }

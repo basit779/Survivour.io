@@ -33,6 +33,11 @@ export class World {
   rng: RNG
   run = new RunState()
   spawnTimer = 0
+  eliteTimer = 0
+  /** Index into C.BOSS_TIMES of the next boss to spawn. */
+  bossIndex = 0
+  /** Currently-alive boss (for the boss HP bar), or null. */
+  boss: Enemy | null = null
 
   constructor(seed?: number) {
     this.rng = new RNG(seed)
@@ -77,6 +82,9 @@ export class World {
     this.run.pendingLevels = 0
     this.run.state = 'playing'
     this.spawnTimer = 0
+    this.eliteTimer = 0
+    this.bossIndex = 0
+    this.boss = null
 
     this.camera.setImmediate(p.x, p.y)
     this.camera.trauma = 0
@@ -84,17 +92,17 @@ export class World {
 
   // --- Spawn factories (all reuse pooled objects) ---
 
-  spawnEnemy(defId: string, x: number, y: number, hpScale: number): Enemy {
+  spawnEnemy(defId: string, x: number, y: number, hpMul: number, dmgMul = 1, speedMul = 1): Enemy {
     const e = this.enemies.spawn()
     const def = ENEMIES[defId]
     e.defId = defId
     e.behavior = def.behavior
-    e.maxHp = def.hp * hpScale
+    e.maxHp = def.hp * hpMul
     e.hp = e.maxHp
     e.radius = def.radius
     e.mass = def.mass
-    e.speed = def.speed
-    e.contact = def.contact
+    e.speed = def.speed * speedMul
+    e.contact = def.contact * dmgMul
     e.xp = def.xp
     e.gold = def.gold
     e.color = def.color
@@ -107,7 +115,29 @@ export class World {
     e.vx = 0
     e.vy = 0
     e.hitFlash = 0
+    e.isBoss = def.behavior === 'boss'
+
+    // behavior params
+    const sp = def.special
+    e.fireCooldown = numOf(sp, 'fireCooldown')
+    e.shotDamage = numOf(sp, 'shotDamage') * dmgMul
+    e.shotSpeed = numOf(sp, 'shotSpeed')
+    e.preferRange = numOf(sp, 'preferRange')
+    e.explodeRadius = numOf(sp, 'explodeRadius')
+    e.explodeDamage = numOf(sp, 'explodeDamage') * dmgMul
+    e.explodeRange = numOf(sp, 'explodeRange')
+    e.splitInto = numOf(sp, 'splitInto')
+    e.childId = strOf(sp, 'childId')
+    e.burst = numOf(sp, 'burst')
+    e.fireTimer = e.fireCooldown > 0 ? this.rng.range(0, e.fireCooldown) : 0
     return e
+  }
+
+  /** Enemy projectile that damages the player. */
+  spawnHostileShot(x: number, y: number, vx: number, vy: number, damage: number, radius: number, ttl: number, color: string): void {
+    if (this.projectiles.count >= C.MAX_PROJECTILES) return
+    const q = this.spawnProjectile(x, y, vx, vy, damage, 0, radius, ttl, 0, false, color)
+    q.hostile = true
   }
 
   spawnProjectile(
@@ -139,6 +169,7 @@ export class World {
     q.color = color
     q.hitList.length = 0
     // reset non-linear modes (set by caller if needed)
+    q.hostile = false
     q.mode = 'linear'
     q.homing = false
     q.orbitAngle = 0
@@ -192,4 +223,16 @@ export class World {
     d.color = color
     d.crit = crit
   }
+}
+
+function numOf(sp: Record<string, number | string> | undefined, key: string): number {
+  if (!sp) return 0
+  const v = sp[key]
+  return typeof v === 'number' ? v : 0
+}
+
+function strOf(sp: Record<string, number | string> | undefined, key: string): string {
+  if (!sp) return ''
+  const v = sp[key]
+  return typeof v === 'string' ? v : ''
 }
