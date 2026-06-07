@@ -77,11 +77,22 @@ states).
 - **Movement smoothness** can be improved — revisit in a dedicated feel pass
   (camera lerp/lookahead tuning, optional analog joystick, dir smoothing).
 
+### Built in session 2g (F2P meta layer)
+- **MetaShopScene** (UPGRADES): 7 permanent upgrades (might/vigor/swift/haste/
+  magnet/plating/mend), bought with banked gold, persisted; applied every run.
+- **CharacterSelectScene** (HEROES): 4 operators (Recruit/Striker/Warden/Scout),
+  each a different starting weapon + permanent mods; unlock with gold + select.
+- Meta + operator bonuses fold into `recomputeStats` via `player.metaStats`.
+- **MainMenu** rebuilt with PLAY / UPGRADES / HEROES buttons + selected hero.
+- **GameOver**: rewarded-ad **2× gold** hook (stubbed — wire a real ad SDK).
+- Save schema extended (metaUpgrades / operatorsUnlocked / selectedOperator).
+
 ### 🔜 Next (resume here) — continue the milestone ladder
-1. **Free-to-play meta shop + characters**: spend banked gold on permanent
-   upgrades; selectable operators; rewarded-ad double-gold hook.
-2. **Feel pass**: movement smoothness, hitstop, screen-shake tuning, more particles.
-3. **Ship hardening** (step 11): Capacitor native wrap, icons/splash, store builds.
+1. **Feel pass**: movement smoothness (camera lerp/lookahead, dir smoothing,
+   optional analog stick), hitstop, screen-shake tuning, more particles.
+2. **Ship hardening** (step 11): `npx cap add android/ios`, app icon/splash via
+   @capacitor/assets, portrait lock, real rewarded-ad SDK, store builds (.aab/.ipa).
+3. Content depth: more weapons/enemies toward the full 10/13 roster; biomes.
 
 **Original foundation (session 1) below.**
 

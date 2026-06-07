@@ -19,6 +19,8 @@ interface Rect {
 export class GameOverScene implements Scene {
   private retryRect: Rect = { x: 0, y: 0, w: 0, h: 0 }
   private menuRect: Rect = { x: 0, y: 0, w: 0, h: 0 }
+  private adRect: Rect = { x: 0, y: 0, w: 0, h: 0 }
+  private doubled = false
 
   constructor(
     private ctx: AppCtx,
@@ -49,7 +51,9 @@ export class GameOverScene implements Scene {
     const bw = Math.min(W * 0.38, 200)
     const bh = 52
     const gap = 16
-    const y = H * 0.7
+    const adW = Math.min(W * 0.78, 416)
+    this.adRect = { x: (W - adW) / 2, y: H * 0.6, w: adW, h: 50 }
+    const y = H * 0.6 + 66
     this.retryRect = { x: W / 2 - bw - gap / 2, y, w: bw, h: bh }
     this.menuRect = { x: W / 2 + gap / 2, y, w: bw, h: bh }
   }
@@ -66,9 +70,19 @@ export class GameOverScene implements Scene {
     if (this.ctx.input.consumeTap()) {
       const tx = this.ctx.input.tapX
       const ty = this.ctx.input.tapY
-      if (hit(this.retryRect, tx, ty)) this.doRetry()
+      if (!this.doubled && hit(this.adRect, tx, ty)) this.doubleGold()
+      else if (hit(this.retryRect, tx, ty)) this.doRetry()
       else if (hit(this.menuRect, tx, ty)) this.doMenu()
     }
+  }
+
+  // Rewarded-ad stub: grants the run's gold a second time. Wire a real ad SDK here.
+  private doubleGold(): void {
+    if (this.doubled) return
+    this.doubled = true
+    this.ctx.save.data.totalGold += this.world.run.gold
+    this.ctx.save.save()
+    sfx.levelUp()
   }
 
   private doRetry(): void {
@@ -106,6 +120,7 @@ export class GameOverScene implements Scene {
     g.fillStyle = PAL.gold
     g.fillText(`◆ ${run.gold} banked`, W / 2, cy + 56)
 
+    button(g, this.adRect, this.doubled ? 'GOLD DOUBLED ✓' : `▶ WATCH AD — 2× GOLD (+${run.gold})`, this.doubled ? PAL.uiDim : PAL.gold)
     button(g, this.retryRect, 'RETRY', PAL.uiAccent)
     button(g, this.menuRect, 'MENU', PAL.uiDim)
   }

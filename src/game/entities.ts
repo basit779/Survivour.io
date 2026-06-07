@@ -2,7 +2,7 @@
 // carries an `alive` flag for the SwapPool. Moving entities keep prevX/prevY so
 // the renderer can interpolate between sim ticks.
 import { C } from '../data/balance'
-import type { EnemyBehavior, EnemyShape, WeaponInstance, PassiveInstance } from '../data/schema'
+import type { EnemyBehavior, EnemyShape, WeaponInstance, PassiveInstance, PassiveStat } from '../data/schema'
 
 export class Player {
   alive = true
@@ -41,6 +41,8 @@ export class Player {
 
   weapons: WeaponInstance[] = []
   passives: PassiveInstance[] = []
+  /** Permanent (meta + operator) stat bonuses, applied every recompute. */
+  metaStats: Partial<Record<PassiveStat, number>> = {}
 }
 
 export class Enemy {

@@ -27,6 +27,7 @@ export class RunScene implements Scene {
     seed?: number,
   ) {
     this.world = new World(seed)
+    this.world.configure(ctx.save.data)
     this.world.reset()
   }
 

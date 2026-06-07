@@ -1,15 +1,28 @@
-// Persisted meta-progression shape. Kept tiny for now (best stats + banked gold);
-// the permanent-upgrade shop / unlocks extend this in the meta step.
+// Persisted meta-progression shape.
 export const SAVE_VERSION = 1
 
 export interface MetaSave {
   version: number
   bestTime: number // seconds survived (best run)
   bestKills: number
-  totalGold: number // banked across all runs
+  totalGold: number // banked, spendable in the shop
   runs: number
+  /** Permanent-upgrade ranks, keyed by upgrade id. */
+  metaUpgrades: Record<string, number>
+  /** Unlocked operator ids. */
+  operatorsUnlocked: string[]
+  selectedOperator: string
 }
 
 export function defaultSave(): MetaSave {
-  return { version: SAVE_VERSION, bestTime: 0, bestKills: 0, totalGold: 0, runs: 0 }
+  return {
+    version: SAVE_VERSION,
+    bestTime: 0,
+    bestKills: 0,
+    totalGold: 0,
+    runs: 0,
+    metaUpgrades: {},
+    operatorsUnlocked: ['recruit'],
+    selectedOperator: 'recruit',
+  }
 }

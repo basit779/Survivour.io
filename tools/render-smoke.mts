@@ -6,6 +6,8 @@ import { renderWorld, renderHud } from '../src/game/systems/render'
 import { LevelUpScene } from '../src/game/scenes/LevelUpScene'
 import { MainMenuScene } from '../src/game/scenes/MainMenuScene'
 import { GameOverScene } from '../src/game/scenes/GameOverScene'
+import { MetaShopScene } from '../src/game/scenes/MetaShopScene'
+import { CharacterSelectScene } from '../src/game/scenes/CharacterSelectScene'
 
 // A permissive Canvas2D stub: every method is a no-op; gradient creators return
 // an object with addColorStop.
@@ -79,7 +81,11 @@ const ctxStub: any = {
   input: { update() {}, consumePick: () => 0, consumeTap: () => false, consumeConfirm: () => false, consumeRestart: () => false, consumePause: () => false, tapX: 0, tapY: 0 },
   engine: { timeScale: 1 },
   scenes: { pop() {}, top: null, replaceAll() {}, push() {} },
-  save: { data: { bestTime: 0, bestKills: 0, totalGold: 0, runs: 0 }, recordRun() {} },
+  save: {
+    data: { version: 1, bestTime: 0, bestKills: 0, totalGold: 500, runs: 0, metaUpgrades: {}, operatorsUnlocked: ['recruit'], selectedOperator: 'recruit' },
+    recordRun() {},
+    save() {},
+  },
 }
 function tryScene(label: string, fn: () => void): void {
   try {
@@ -105,6 +111,12 @@ tryScene('gameover', () => {
   const go = new GameOverScene(ctxStub, world, { restart() {} } as any)
   go.enter()
   go.render(renderer, 0)
+})
+tryScene('metashop', () => {
+  new MetaShopScene(ctxStub).render(renderer, 0)
+})
+tryScene('heroes', () => {
+  new CharacterSelectScene(ctxStub).render(renderer, 0)
 })
 
 console.log(failed ? '\nFAIL ❌' : '\nPASS ✅')

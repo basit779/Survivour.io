@@ -9,9 +9,13 @@ import { C } from '../data/balance'
 import { PAL } from '../data/palette'
 import { ENEMIES } from '../data/enemies'
 import { xpToNext } from '../data/levelCurve'
+import { aggregateMetaStats } from '../data/meta'
+import { operatorOf } from '../data/operators'
 import { Player, Enemy, Projectile, Gem, Particle, DamageNumber } from './entities'
 import type { GemKind } from './entities'
 import { recomputeStats } from './systems/stats'
+import type { MetaSave } from '../save/SaveSchema'
+import type { PassiveStat } from '../data/schema'
 
 export class RunState {
   elapsed = 0
@@ -39,8 +43,18 @@ export class World {
   /** Currently-alive boss (for the boss HP bar), or null. */
   boss: Enemy | null = null
 
+  /** Permanent meta + operator bonuses applied each run (set via configure). */
+  metaStats: Partial<Record<PassiveStat, number>> = {}
+  startWeapon = 'shard'
+
   constructor(seed?: number) {
     this.rng = new RNG(seed)
+  }
+
+  /** Read meta-progression from the save so reset() applies it. */
+  configure(save: MetaSave): void {
+    this.metaStats = aggregateMetaStats(save)
+    this.startWeapon = operatorOf(save.selectedOperator).startWeapon
   }
 
   /** (Re)initialize for a fresh run. */
@@ -71,8 +85,9 @@ export class World {
     p.critMult = C.CRIT_MULT
     p.iframe = 0
     p.hurtFlash = 0
-    p.weapons = [{ defId: 'shard', level: 1, cooldownTimer: 0, evolved: false }]
+    p.weapons = [{ defId: this.startWeapon, level: 1, cooldownTimer: 0, evolved: false }]
     p.passives = []
+    p.metaStats = this.metaStats
     recomputeStats(p)
     p.hp = p.maxHp
 
