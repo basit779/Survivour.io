@@ -11,11 +11,13 @@ import { ENEMIES } from '../data/enemies'
 import { xpToNext } from '../data/levelCurve'
 import { Player, Enemy, Projectile, Gem, Particle, DamageNumber } from './entities'
 import type { GemKind } from './entities'
+import { recomputeStats } from './systems/stats'
 
 export class RunState {
   elapsed = 0
   kills = 0
   gold = 0
+  pendingLevels = 0
   state: 'playing' | 'dead' | 'win' = 'playing'
 }
 
@@ -65,10 +67,14 @@ export class World {
     p.iframe = 0
     p.hurtFlash = 0
     p.weapons = [{ defId: 'shard', level: 1, cooldownTimer: 0, evolved: false }]
+    p.passives = []
+    recomputeStats(p)
+    p.hp = p.maxHp
 
     this.run.elapsed = 0
     this.run.kills = 0
     this.run.gold = 0
+    this.run.pendingLevels = 0
     this.run.state = 'playing'
     this.spawnTimer = 0
 
@@ -116,7 +122,7 @@ export class World {
     knockback: number,
     crit: boolean,
     color: string,
-  ): void {
+  ): Projectile {
     const q = this.projectiles.spawn()
     q.x = x
     q.y = y
@@ -132,9 +138,18 @@ export class World {
     q.crit = crit
     q.color = color
     q.hitList.length = 0
+    // reset non-linear modes (set by caller if needed)
+    q.mode = 'linear'
+    q.homing = false
+    q.orbitAngle = 0
+    q.orbitRadius = 0
+    q.orbitSpeed = 0
+    q.rehitTimer = 0
+    return q
   }
 
   spawnGem(x: number, y: number, value: number, kind: GemKind): void {
+    if (this.gems.count >= C.MAX_GEMS) return
     const g = this.gems.spawn()
     const a = this.rng.range(0, Math.PI * 2)
     const sp = this.rng.range(40, 95)

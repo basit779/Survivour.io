@@ -4,6 +4,8 @@ export class Keyboard {
   pauseEdge = false
   restartEdge = false
   confirmEdge = false
+  /** 0 = none; 1..N = a number key was pressed this frame. */
+  pickEdge = 0
 
   constructor() {
     window.addEventListener('keydown', this.onDown)
@@ -16,6 +18,7 @@ export class Keyboard {
     if (k === 'escape' || k === 'p') this.pauseEdge = true
     if (k === 'r') this.restartEdge = true
     if (k === 'enter' || k === ' ') this.confirmEdge = true
+    if (k >= '1' && k <= '9') this.pickEdge = Number(k)
     if (k === ' ' || k.startsWith('arrow')) e.preventDefault()
   }
 

@@ -44,6 +44,8 @@ export interface WeaponDef {
   ttl: number // projectile lifetime (s)
   projRadius: number // projectile collision/visual radius (WU)
   color: string
+  /** Projectile-pattern weapons steer toward the nearest enemy. */
+  homing?: boolean
   /** 5 entries: index 0 = level 1. */
   levels: WeaponLevel[]
   /** Evolution: requires this passive id at level >= 1 while weapon is maxed. */

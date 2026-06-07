@@ -3,6 +3,7 @@
 // pass, the HUD, and every overlay branch (playing / paused / dead / win).
 import { World } from '../src/game/World'
 import { renderWorld, renderHud } from '../src/game/systems/render'
+import { LevelUpScene } from '../src/game/scenes/LevelUpScene'
 
 // A permissive Canvas2D stub: every method is a no-op; gradient creators return
 // an object with addColorStop.
@@ -65,6 +66,21 @@ tryRender('playing', 'playing', false)
 tryRender('paused', 'playing', true)
 tryRender('dead', 'dead', false)
 tryRender('win', 'win', false)
+
+// LevelUpScene overlay
+world.run.state = 'playing'
+const engineStub: any = { timeScale: 1 }
+const scenesStub: any = { pop() {}, top: null }
+const luInput: any = { consumePick: () => 0, consumeTap: () => false, tapX: 0, tapY: 0 }
+try {
+  const lu = new LevelUpScene(world, luInput, engineStub, scenesStub)
+  lu.enter()
+  lu.render(renderer, 0)
+  console.log('  levelup: ok')
+} catch (e) {
+  failed = true
+  console.error('  levelup: THREW', e)
+}
 
 console.log(failed ? '\nFAIL ❌' : '\nPASS ✅')
 process.exit(failed ? 1 : 0)

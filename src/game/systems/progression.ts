@@ -51,12 +51,8 @@ function gainXp(world: World, amount: number): void {
 
 function onLevelUp(world: World): void {
   const p = world.player
-  // Placeholder auto-progression (replaced by the upgrade-card screen later).
-  p.maxHp += 4
-  p.hp = Math.min(p.maxHp, p.hp + p.maxHp * 0.25)
-  p.damageMult += 0.05
-  p.attackSpeedMult += 0.015
-  if (p.level % 4 === 0 && p.weapons[0].level < 5) p.weapons[0].level++
+  // Queue an upgrade choice; RunScene pushes the LevelUpScene overlay.
+  world.run.pendingLevels++
   world.camera.addTrauma(0.14)
   for (let k = 0; k < 22; k++) {
     const a = (k / 22) * Math.PI * 2

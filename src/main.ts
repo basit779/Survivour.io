@@ -17,7 +17,7 @@ const input = new InputManager(canvas)
 const scenes = new SceneManager()
 const engine = new Engine(renderer, scenes)
 
-scenes.push(new RunScene(input, engine, seed))
+scenes.push(new RunScene(input, engine, scenes, seed))
 
 if (loading) loading.style.display = 'none'
 engine.start()

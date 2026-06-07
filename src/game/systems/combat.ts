@@ -3,6 +3,8 @@
 // application, and death resolution with drops/particles.
 import { C } from '../../data/balance'
 import { PAL } from '../../data/palette'
+import { angleDelta, clamp } from '../../engine/math'
+import { findNearest } from './target'
 import type { World } from '../World'
 import type { Enemy } from '../entities'
 
@@ -14,11 +16,23 @@ export function updateMovement(world: World, dt: number): void {
     e.y += e.vy * dt
     if (e.hitFlash > 0) e.hitFlash -= dt
   }
+  const pl = world.player
   const pr = world.projectiles
   for (let i = 0; i < pr.count; i++) {
     const q = pr.items[i]
-    q.x += q.vx * dt
-    q.y += q.vy * dt
+    if (q.mode === 'orbit') {
+      q.orbitAngle += q.orbitSpeed * dt
+      q.x = pl.x + Math.cos(q.orbitAngle) * q.orbitRadius
+      q.y = pl.y + Math.sin(q.orbitAngle) * q.orbitRadius
+      q.rehitTimer -= dt
+      if (q.rehitTimer <= 0) {
+        q.hitList.length = 0
+        q.rehitTimer = 0.3
+      }
+    } else {
+      q.x += q.vx * dt
+      q.y += q.vy * dt
+    }
   }
   const gm = world.gems
   const drag = Math.exp(-4 * dt)
@@ -37,8 +51,21 @@ export function updateProjectiles(world: World, dt: number): void {
   const pr = world.projectiles
   for (let i = 0; i < pr.count; i++) {
     const q = pr.items[i]
+    if (q.homing) {
+      const t = findNearest(world, q.x, q.y, 520)
+      if (t) {
+        const sp = Math.hypot(q.vx, q.vy) || 1
+        const cur = Math.atan2(q.vy, q.vx)
+        const desired = Math.atan2(t.y - q.y, t.x - q.x)
+        const na = cur + clamp(angleDelta(cur, desired), -7 * dt, 7 * dt)
+        q.vx = Math.cos(na) * sp
+        q.vy = Math.sin(na) * sp
+      }
+    }
     q.ttl -= dt
-    if (q.ttl <= 0 || q.x < -60 || q.y < -60 || q.x > C.ARENA_W + 60 || q.y > C.ARENA_H + 60) {
+    if (q.mode !== 'orbit' && (q.ttl <= 0 || q.x < -60 || q.y < -60 || q.x > C.ARENA_W + 60 || q.y > C.ARENA_H + 60)) {
+      q.alive = false
+    } else if (q.ttl <= 0) {
       q.alive = false
     }
   }
@@ -109,7 +136,7 @@ export function damageEnemy(
 export function damagePlayer(world: World, amount: number): void {
   const p = world.player
   if (p.iframe > 0) return
-  p.hp -= amount
+  p.hp -= Math.max(1, amount - p.armor)
   p.iframe = C.IFRAME
   p.hurtFlash = 0.18
   world.camera.addTrauma(0.32)

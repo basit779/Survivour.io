@@ -33,15 +33,25 @@ states).
   HUD + overlays).
 - Data: starter weapon (`shard`), 3 enemies (swarmer/runner/brute), XP curve.
 
+### Built in session 2b (the roguelite core)
+- **Level-up card screen** (`LevelUpScene`): freezes the battlefield, offers 3
+  weighted upgrade cards (new/upgrade weapon, new/upgrade passive, fallbacks),
+  pick by tap or number key; queues multiple level-ups.
+- **Arsenal**: 6 weapons across patterns — projectile (`shard`/`fan`), homing
+  (`seeker`), aura (`forcefield`), orbit (`orbital`), strike/chain (`zap`).
+- **11 passives** + `stats.ts` recompute (damage/atkspd/move/HP/magnet/+proj/area/
+  crit/regen/cooldown/armor). Armor + regen wired into combat/player.
+- Tap + number-key selection input.
+
 ### 🔜 Next (resume here) — continue the milestone ladder
-1. **Enemies + waves + bosses** (step 5): full 13-kind roster, per-kind behaviors
+1. **Enemies + waves + bosses** (step 5): full roster, per-kind behaviors
    (ranged/suicide/split), elites, the 5/10/15-min boss cadence, richer spawn
    director + difficulty scaling, status effects.
-2. **Full weapons + evolutions** (step 6): all 10 weapons (aura/orbit/beam/
-   boomerang/area), 12 passives, evolution recipes.
-3. **Level-up card screen** (step 7): replace auto-leveling with the 3-card
-   choose-an-upgrade overlay (reroll/banish), proper win/lose summary.
-4. Then meta/persistence → juice → audio → ship hardening (steps 8–11).
+2. **Weapon evolutions** (rest of step 6): evolution recipes (weapon Lv5 + paired
+   passive → evolved weapon), a couple more weapons toward the 10-weapon roster.
+3. **Meta + persistence** (step 8): currencies, permanent upgrade shop,
+   characters, save system; main menu + game-over summary scenes.
+4. Then juice → audio → ship hardening (steps 9–11).
 
 **Original foundation (session 1) below.**
 

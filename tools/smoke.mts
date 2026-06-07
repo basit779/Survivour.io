@@ -3,18 +3,22 @@
 // sim stays finite and actually produces combat (spawns, kills, leveling).
 import { World } from '../src/game/World'
 import { C } from '../src/data/balance'
+import { WEAPON_IDS } from '../src/data/weapons'
 import { updatePlayerControl } from '../src/game/systems/player'
 import { buildEnemyGrid, updateEnemyAI, updateSpawnDirector } from '../src/game/systems/enemies'
 import { updateWeapons } from '../src/game/systems/weapons'
 import { updateMovement, updateProjectiles, updateCollisions, updateDeaths } from '../src/game/systems/combat'
 import { updatePickups } from '../src/game/systems/progression'
 import { snapshotPrev, updateCamera, updateParticles, updateDamageNumbers } from '../src/game/systems/fx'
+import { generateChoices, applyChoice } from '../src/game/systems/upgrades'
 
 const world = new World(12345)
 world.reset()
 // Make the test player tanky so we exercise the full combat loop, not balance.
 world.player.maxHp = 1_000_000
 world.player.hp = 1_000_000
+// Equip every weapon so all fire patterns (projectile/homing/aura/orbit/strike) run.
+world.player.weapons = WEAPON_IDS.map((id) => ({ defId: id, level: 3, cooldownTimer: 0, evolved: false }))
 
 const input = { moveX: 0, moveY: 0, moveMag: 1, pointerDown: false }
 
@@ -48,6 +52,13 @@ for (let t = 0; t < TICKS; t++) {
   updateParticles(w, C.FIXED_DT)
   updateDamageNumbers(w, C.FIXED_DT)
 
+  // auto-resolve any queued level-ups by picking a random offered card
+  while (w.run.pendingLevels > 0) {
+    const choices = generateChoices(w)
+    applyChoice(w, choices[w.rng.int(0, choices.length - 1)])
+    w.run.pendingLevels--
+  }
+
   peakEnemies = Math.max(peakEnemies, w.enemies.count)
   peakProjectiles = Math.max(peakProjectiles, w.projectiles.count)
   if (!Number.isFinite(w.player.x) || !Number.isFinite(w.player.y) || !Number.isFinite(w.player.hp)) {
@@ -63,7 +74,9 @@ console.log(`ticks:           ${TICKS} (${SECONDS}s)`)
 console.log(`kills:           ${world.run.kills}`)
 console.log(`player level:    ${p.level}`)
 console.log(`player hp:       ${Math.round(p.hp)}`)
-console.log(`weapon level:    ${p.weapons[0].level}`)
+console.log(`weapons owned:   ${p.weapons.map((w) => `${w.defId}@${w.level}`).join(', ')}`)
+console.log(`passives owned:  ${p.passives.map((w) => `${w.defId}@${w.level}`).join(', ') || '(none)'}`)
+console.log(`damage mult:     ${p.damageMult.toFixed(2)}`)
 console.log(`peak enemies:    ${peakEnemies}`)
 console.log(`peak projectiles:${peakProjectiles}`)
 console.log(`live gems:       ${world.gems.count}`)

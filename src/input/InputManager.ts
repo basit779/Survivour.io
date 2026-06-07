@@ -12,12 +12,36 @@ export class InputManager implements InputState {
   moveMag = 0
   pointerDown = false
 
+  // Raw tap tracking (used for UI selection, independent of the joystick).
+  tapX = 0
+  tapY = 0
+  private tapEdge = false
+
   readonly joystick: VirtualJoystick
   readonly keyboard: Keyboard
 
   constructor(el: HTMLElement) {
     this.joystick = new VirtualJoystick(el)
     this.keyboard = new Keyboard()
+    el.addEventListener('pointerdown', (e) => {
+      this.tapX = e.clientX
+      this.tapY = e.clientY
+      this.tapEdge = true
+    })
+  }
+
+  /** True once per tap; records position in tapX/tapY. */
+  consumeTap(): boolean {
+    const e = this.tapEdge
+    this.tapEdge = false
+    return e
+  }
+
+  /** Returns 1..N if a number key was pressed since last call, else 0. */
+  consumePick(): number {
+    const e = this.keyboard.pickEdge
+    this.keyboard.pickEdge = 0
+    return e
   }
 
   /** Recompute the merged movement vector. Call once per render frame. */

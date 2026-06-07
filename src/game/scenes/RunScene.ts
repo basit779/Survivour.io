@@ -4,6 +4,8 @@ import type { Scene } from '../../engine/Scene'
 import type { Renderer } from '../../engine/Renderer'
 import type { InputManager } from '../../input/InputManager'
 import type { Engine } from '../../engine/Engine'
+import type { SceneManager } from '../../engine/SceneManager'
+import { LevelUpScene } from './LevelUpScene'
 import { C } from '../../data/balance'
 import { PAL } from '../../data/palette'
 import { World } from '../World'
@@ -22,6 +24,7 @@ export class RunScene implements Scene {
   constructor(
     private input: InputManager,
     private engine: Engine,
+    private scenes: SceneManager,
     seed?: number,
   ) {
     this.world = new World(seed)
@@ -55,16 +58,21 @@ export class RunScene implements Scene {
   render(r: Renderer, alpha: number): void {
     this.input.update()
     const run = this.world.run
-    const justPressed = this.input.pointerDown && !this.prevPointer
+    const isTop = this.scenes.top === this
 
-    if (run.state !== 'playing') {
-      if (justPressed || this.input.consumeRestart() || this.input.consumeConfirm()) {
-        this.world.reset()
-        this.engine.timeScale = 1
+    if (isTop) {
+      const justPressed = this.input.pointerDown && !this.prevPointer
+      if (run.state !== 'playing') {
+        if (justPressed || this.input.consumeRestart() || this.input.consumeConfirm()) {
+          this.world.reset()
+          this.engine.timeScale = 1
+        }
+      } else {
+        if (this.input.consumePause()) this.engine.timeScale = this.engine.timeScale > 0 ? 0 : 1
+        else if (this.engine.timeScale === 0 && justPressed) this.engine.timeScale = 1
+        // queue the level-up overlay when XP thresholds were crossed
+        if (run.pendingLevels > 0) this.scenes.push(new LevelUpScene(this.world, this.input, this.engine, this.scenes))
       }
-    } else {
-      if (this.input.consumePause()) this.engine.timeScale = this.engine.timeScale > 0 ? 0 : 1
-      else if (this.engine.timeScale === 0 && justPressed) this.engine.timeScale = 1
     }
     this.prevPointer = this.input.pointerDown
 

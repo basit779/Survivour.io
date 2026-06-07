@@ -2,7 +2,7 @@
 // carries an `alive` flag for the SwapPool. Moving entities keep prevX/prevY so
 // the renderer can interpolate between sim ticks.
 import { C } from '../data/balance'
-import type { EnemyBehavior, EnemyShape, WeaponInstance } from '../data/schema'
+import type { EnemyBehavior, EnemyShape, WeaponInstance, PassiveInstance } from '../data/schema'
 
 export class Player {
   alive = true
@@ -31,11 +31,16 @@ export class Player {
   attackSpeedMult = 1
   critChance: number = C.CRIT_CHANCE
   critMult: number = C.CRIT_MULT
+  projectileBonus = 0
+  cooldownMult = 1 // 1 = no reduction; lower = faster
+  regen = 0 // hp/sec
+  armor = 0 // flat contact-damage reduction
 
   iframe = 0
   hurtFlash = 0
 
   weapons: WeaponInstance[] = []
+  passives: PassiveInstance[] = []
 }
 
 export class Enemy {
@@ -79,6 +84,13 @@ export class Projectile {
   color = '#fff'
   /** Enemies already hit (pierce dedup); reused, cleared on spawn. */
   hitList: Enemy[] = []
+  // Movement modes for non-linear weapons.
+  mode: 'linear' | 'orbit' = 'linear'
+  homing = false
+  orbitAngle = 0
+  orbitRadius = 0
+  orbitSpeed = 0
+  rehitTimer = 0 // orbit weapons clear hitList on this interval to re-hit
 }
 
 export type GemKind = 'xp' | 'gold' | 'health'
