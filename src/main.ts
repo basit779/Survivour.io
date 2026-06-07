@@ -5,6 +5,7 @@ import { Engine } from './engine/Engine'
 import { SceneManager } from './engine/SceneManager'
 import { InputManager } from './input/InputManager'
 import { SaveManager } from './save/SaveManager'
+import { sprites } from './engine/SpriteCache'
 import { audio } from './engine/audio/AudioEngine'
 import { music } from './engine/audio/Music'
 import { MainMenuScene } from './game/scenes/MainMenuScene'
@@ -15,6 +16,7 @@ const loading = document.getElementById('loading')
 if (!canvas) throw new Error('game-canvas not found')
 
 const renderer = new Renderer(canvas)
+sprites.init() // bake all art to offscreen canvases once
 const scenes = new SceneManager()
 const input = new InputManager(canvas)
 const save = new SaveManager()

@@ -1,9 +1,10 @@
 // All drawing. World pass (neon grid + entities + additive glow/particles) then
 // the screen-space HUD/overlays. Programmatic art only.
-import { lerp } from '../../engine/math'
+import { lerp, TAU } from '../../engine/math'
 import { C } from '../../data/balance'
 import { PAL } from '../../data/palette'
 import { Time } from '../../engine/Time'
+import { sprites } from '../../engine/SpriteCache'
 import type { Renderer } from '../../engine/Renderer'
 import type { World } from '../World'
 import type { Enemy, Gem, Particle } from '../entities'
@@ -27,7 +28,7 @@ export function renderWorld(world: World, r: Renderer, alpha: number): void {
   const top = r.worldTop(camY) - 48
   const bottom = r.worldBottom(camY) + 48
 
-  drawGrid(g, r, left, right, top, bottom)
+  drawGround(g, r, left, right, top, bottom)
 
   // gems
   const gm = world.gems
@@ -45,7 +46,7 @@ export function renderWorld(world: World, r: Renderer, alpha: number): void {
     const x = lerp(e.prevX, e.x, alpha)
     const y = lerp(e.prevY, e.y, alpha)
     if (x < left || x > right || y < top || y > bottom) continue
-    drawEnemy(g, x, y, e)
+    drawEnemy(g, x, y, e, Time.frame)
   }
 
   // player
@@ -79,6 +80,21 @@ export function renderWorld(world: World, r: Renderer, alpha: number): void {
   g.globalAlpha = 1
 
   r.beginScreen()
+}
+
+function drawGround(g: CanvasRenderingContext2D, r: Renderer, left: number, right: number, top: number, bottom: number): void {
+  if (sprites.ground) {
+    if (!sprites.groundPattern) sprites.groundPattern = g.createPattern(sprites.ground, 'repeat')
+    if (sprites.groundPattern) {
+      g.fillStyle = sprites.groundPattern
+      g.fillRect(left, top, right - left, bottom - top)
+    }
+    g.lineWidth = 6 / r.scale
+    g.strokeStyle = PAL.bgGridGlow
+    g.strokeRect(0, 0, C.ARENA_W, C.ARENA_H)
+    return
+  }
+  drawGrid(g, r, left, right, top, bottom)
 }
 
 function drawGrid(g: CanvasRenderingContext2D, r: Renderer, left: number, right: number, top: number, bottom: number): void {
@@ -138,8 +154,30 @@ function drawShape(g: CanvasRenderingContext2D, x: number, y: number, radius: nu
   }
 }
 
-function drawEnemy(g: CanvasRenderingContext2D, x: number, y: number, e: Enemy): void {
-  // cheap glow halo
+function drawShadow(g: CanvasRenderingContext2D, x: number, y: number, radius: number): void {
+  g.globalAlpha = 0.3
+  g.fillStyle = '#000000'
+  g.beginPath()
+  g.ellipse(x, y + radius * 0.72, radius * 0.95, radius * 0.42, 0, 0, TAU)
+  g.fill()
+  g.globalAlpha = 1
+}
+
+function drawEnemy(g: CanvasRenderingContext2D, x: number, y: number, e: Enemy, frame: number): void {
+  drawShadow(g, x, y, e.radius)
+  const spr = sprites.enemy(e.defId)
+  if (spr) {
+    const drawR = e.radius * 1.4
+    const bob = Math.sin(frame * 0.15 + (x + y) * 0.05) * e.radius * 0.07
+    g.drawImage(spr.color, x - drawR, y - drawR - bob, drawR * 2, drawR * 2)
+    if (e.hitFlash > 0) {
+      g.globalAlpha = Math.min(1, e.hitFlash / 0.08)
+      g.drawImage(spr.white, x - drawR, y - drawR - bob, drawR * 2, drawR * 2)
+      g.globalAlpha = 1
+    }
+    return
+  }
+  // fallback: simple shape
   g.globalAlpha = 0.22
   g.fillStyle = e.glow
   g.beginPath()
@@ -152,16 +190,28 @@ function drawEnemy(g: CanvasRenderingContext2D, x: number, y: number, e: Enemy):
 }
 
 function drawPlayer(g: CanvasRenderingContext2D, x: number, y: number, radius: number, hurt: number): void {
-  // glow
+  drawShadow(g, x, y, radius)
+  if (sprites.player) {
+    const drawR = radius * 1.75
+    g.drawImage(sprites.player, x - drawR, y - drawR, drawR * 2, drawR * 2)
+    if (hurt > 0) {
+      g.globalAlpha = Math.min(1, hurt / 0.18)
+      g.fillStyle = '#ffffff'
+      g.beginPath()
+      g.arc(x, y, radius, 0, TAU)
+      g.fill()
+      g.globalAlpha = 1
+    }
+    return
+  }
+  // fallback
   g.globalCompositeOperation = 'lighter'
   drawGlowDot(g, x, y, radius * 1.6, PAL.playerGlow)
   g.globalCompositeOperation = 'source-over'
-  // body
   g.fillStyle = hurt > 0 ? '#ffffff' : PAL.player
   g.beginPath()
   g.arc(x, y, radius, 0, Math.PI * 2)
   g.fill()
-  // core
   g.fillStyle = PAL.playerCore
   g.beginPath()
   g.arc(x, y, radius * 0.45, 0, Math.PI * 2)

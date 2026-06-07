@@ -87,6 +87,19 @@ states).
 - **GameOver**: rewarded-ad **2× gold** hook (stubbed — wire a real ad SDK).
 - Save schema extended (metaUpgrades / operatorsUnlocked / selectedOperator).
 
+### Built in session 2h (visual overhaul — "real art" without files)
+- **SpriteCache** (`engine/SpriteCache.ts`): bakes all art to offscreen canvases
+  once at boot; the hot loop is drawImage blits (fast on mobile).
+- **Monster/zombie creatures** per enemy archetype (shaded body+head, glowing
+  eyes, arms, belly seam; horns on boss/elite, fanged mouth on spitter/boss),
+  baked color + white-flash versions. Drop shadows + subtle walk-bob.
+- **Survivor** sprite (glow + visor). **Textured wasteland ground** (tiled
+  pattern: plates, speckle noise, cracks) replacing the neon grid.
+- Renderer falls back to the old shapes if baking is unavailable (headless-safe).
+- NOTE: art is procedural-baked (zero asset files, no IP/licensing risk, tiny
+  bundle). Swapping in real PNGs later = load images into SpriteCache instead of
+  baking; call sites unchanged.
+
 ### 🔜 Next (resume here) — continue the milestone ladder
 1. **Feel pass**: movement smoothness (camera lerp/lookahead, dir smoothing,
    optional analog stick), hitstop, screen-shake tuning, more particles.
